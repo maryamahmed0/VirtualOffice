@@ -1,9 +1,9 @@
-using UnityEngine;
+﻿using UnityEngine;
+using Unity.Netcode;
 
 [RequireComponent(typeof(Rigidbody2D))]
-public class PlayerMovement : MonoBehaviour
+public class PlayerMovement : NetworkBehaviour
 {
-    [Header("Movement")]
     [SerializeField] private float moveSpeed = 4.5f;
 
     private Rigidbody2D rb;
@@ -17,17 +17,16 @@ public class PlayerMovement : MonoBehaviour
         rb.interpolation = RigidbodyInterpolation2D.Interpolate;
     }
 
-    /// <summary>
-    /// Set desired move direction (normalized or not). This only stores intent; actual movement happens in FixedUpdate.
-    /// </summary>
     public void SetMoveInput(Vector2 moveInput)
     {
-        // Optional: normalize to avoid faster diagonal movement
         desiredVelocity = moveInput.sqrMagnitude > 1f ? moveInput.normalized : moveInput;
     }
 
     private void FixedUpdate()
     {
+        // السيرفر بس هو اللي يطبق الفيزيكس
+        if (!IsServer) return;
+
         rb.velocity = desiredVelocity * moveSpeed;
     }
 }
