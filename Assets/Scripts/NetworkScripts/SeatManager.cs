@@ -12,15 +12,12 @@ public class SeatManager : NetworkBehaviour
 
     private void Awake()
     {
-        // لو نسيتي تسحبي seats في inspector تقدري تفعلي السطر ده:
-        // if (seats == null || seats.Length == 0) seats = GetComponentsInChildren<Seat>(true);
+        if (seats == null || seats.Length == 0)
+            seats = GetComponentsInChildren<Seat>(true);
 
         free.Clear();
-        if (seats != null)
-        {
-            for (int i = 0; i < seats.Length; i++)
-                free.Add(i);
-        }
+        for (int i = 0; i < seats.Length; i++)
+            free.Add(i);
     }
 
     public override void OnNetworkSpawn()
