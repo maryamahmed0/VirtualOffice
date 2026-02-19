@@ -1,6 +1,7 @@
 using TMPro;
 using UnityEngine;
 using Unity.Netcode;
+using System.Text;
 
 public class LobbyConnectUI : MonoBehaviour
 {
@@ -18,6 +19,15 @@ public class LobbyConnectUI : MonoBehaviour
     private void Awake()
     {
         relay = FindFirstObjectByType<RelayConnector>();
+    }
+
+
+    void ApplyConnectionPayload(string playerName, string org)
+    {
+        var nm = NetworkManager.Singleton;
+        var payload = $"{playerName}|{org}";
+        nm.NetworkConfig.ConnectionData = Encoding.UTF8.GetBytes(payload);
+        Debug.Log($"[PAYLOAD] set >>>{payload}<<< bytes={nm.NetworkConfig.ConnectionData.Length}");
     }
 
     // ✅ يشيل أي مسافات/رموز، ويخليها Uppercase
@@ -51,10 +61,29 @@ public class LobbyConnectUI : MonoBehaviour
         statusText.text = "Connecting...";
 
         string displayName = nameInput.text.Trim();
-        string org = orgInput.text.Trim();
+        string org = orgInput.text.Trim().ToUpperInvariant();
+
         string joinCodeRaw = joinCodeInput != null ? joinCodeInput.text : "";
         string joinCode = SanitizeJoinCode(joinCodeRaw);
 
+        // ✅ Validate basic inputs (مهم جدًا للـ ConnectionApproval)
+        if (string.IsNullOrWhiteSpace(displayName))
+        {
+            errorText.text = "Please enter a name.";
+            statusText.text = "";
+            busy = false;
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(org))
+        {
+            errorText.text = "Please enter Org ID.";
+            statusText.text = "";
+            busy = false;
+            return;
+        }
+
+        // ✅ cache data
         if (GameSessionData.Instance != null)
             GameSessionData.Instance.SetUser(displayName, org);
 
@@ -63,33 +92,55 @@ public class LobbyConnectUI : MonoBehaviour
 
         try
         {
+            if (relay == null)
+                relay = FindFirstObjectByType<RelayConnector>();
+
+            if (relay == null)
+            {
+                errorText.text = "RelayConnector not found in scene.";
+                statusText.text = "";
+                return;
+            }
+
+            var nm = NetworkManager.Singleton;
+            if (nm == null)
+            {
+                errorText.text = "NetworkManager.Singleton is NULL.";
+                statusText.text = "";
+                return;
+            }
+
             // ✅ لو فيه Networking شغال بالفعل، ما تبدأيش وضع تاني
-            if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
+            if (nm.IsListening)
             {
                 statusText.text = "Already running (Host/Client). Stop and retry.";
                 return;
             }
 
+            // ✅ أهم سطرين: ابعتي الـ payload BEFORE StartHost/StartClient
+            ApplyConnectionPayload(displayName, org);
+
             if (string.IsNullOrEmpty(joinCode))
             {
                 statusText.text = "Creating room...";
-                string code = await relay.CreateRoomAndHost(4);
+
+                // Host
+                string code = await relay.CreateRoomAndHost(displayName, org);
+                PlayerPrefs.SetString("JOIN_CODE", code);
+                PlayerPrefs.Save();
 
                 GameSessionData.Instance?.SetConnectionInfo(true, code);
 
                 statusText.text = "Room created. Share join code:";
                 if (joinCodeText != null) joinCodeText.text = $"Join Code: {code}";
 
-                // ✅ خليه يكتبه في خانة الـ Join code كمان عشان ما يتلخبطش
                 if (joinCodeInput != null) joinCodeInput.text = code;
 
-                // ✅ Copy للـ clipboard
                 GUIUtility.systemCopyBuffer = code;
                 Debug.Log($"[UI] Copied JoinCode to clipboard: >>>{code}<<<");
             }
             else
             {
-                // ✅ Validate length (Relay code غالبًا 6)
                 if (joinCode.Length != 6)
                 {
                     errorText.text = $"Join code should be 6 chars. You entered: '{joinCode}' (len={joinCode.Length})";
@@ -101,7 +152,11 @@ public class LobbyConnectUI : MonoBehaviour
                 GameSessionData.Instance?.SetConnectionInfo(false, joinCode);
 
                 Debug.Log($"[UI] Joining with EXACT >>>{joinCode}<<< len={joinCode.Length}");
-                await relay.JoinRoomAndClient(joinCode);
+
+                await relay.JoinRoomAndClient(joinCode, displayName, org);
+                PlayerPrefs.SetString("JOIN_CODE", joinCode);
+                PlayerPrefs.Save();
+
                 statusText.text = "Joined!";
             }
         }

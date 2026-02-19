@@ -10,8 +10,11 @@ public class UGSBootstrap : MonoBehaviour
     private static string usedProfile;
 
     // ✅ دالة واحدة كل المشروع يناديها
-    public static async Task EnsureSignedIn(string profile)
+    public static async Task EnsureSignedIn()
     {
+        // بروفايل مختلف لكل نسخة
+        string profile = Application.isEditor ? "editor" : "build";
+
         // لو Initialize اتعمل قبل كده ببروفايل مختلف، الأفضل Restart
         if (initTask != null && usedProfile != profile)
         {

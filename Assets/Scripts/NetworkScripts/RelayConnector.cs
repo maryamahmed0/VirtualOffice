@@ -5,6 +5,7 @@ using Unity.Netcode.Transports.UTP;
 using Unity.Services.Relay;
 using Unity.Services.Relay.Models;
 using Unity.Networking.Transport.Relay;
+using System.Text;
 
 public class RelayConnector : MonoBehaviour
 {
@@ -12,8 +13,8 @@ public class RelayConnector : MonoBehaviour
 
     public string CurrentJoinCode { get; private set; }
 
-    private static string RelayProtocol => "wss"; // طالما Use WebSockets متفعل
-
+    // ✅ Protocol: WebGL = wss, غير كده = dtls (الأفضل للويندوز/ايدتور)
+    private static string RelayProtocol => "wss";
     private void Awake()
     {
         if (transport == null)
@@ -42,7 +43,18 @@ public class RelayConnector : MonoBehaviour
         }
     }
 
-    public async Task<string> CreateRoomAndHost(int maxConnections = 4)
+    private static void SetConnectionPayload(string playerName, string org)
+    {
+        var nm = NetworkManager.Singleton;
+        if (nm == null) return;
+
+        string payload = $"{playerName}|{org}";
+        nm.NetworkConfig.ConnectionData = Encoding.UTF8.GetBytes(payload);
+
+        Debug.Log($"[PAYLOAD] set >>>{payload}<<< bytes={nm.NetworkConfig.ConnectionData.Length}");
+    }
+
+    public async Task<string> CreateRoomAndHost(string playerName, string org, int maxConnections = 4)
     {
         if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
         {
@@ -50,7 +62,7 @@ public class RelayConnector : MonoBehaviour
             return CurrentJoinCode;
         }
 
-        await UGSBootstrap.EnsureSignedIn("default");
+        await UGSBootstrap.EnsureSignedIn();
 
         Allocation alloc = await RelayService.Instance.CreateAllocationAsync(maxConnections);
         string joinCode = await RelayService.Instance.GetJoinCodeAsync(alloc.AllocationId);
@@ -59,17 +71,20 @@ public class RelayConnector : MonoBehaviour
 
         Debug.Log($"[Relay][HOST] Region={alloc.Region}");
         Debug.Log($"[Relay][HOST] JoinCode EXACT >>>{joinCode}<<< len={joinCode.Length}");
+        Debug.Log($"[Relay][HOST] Protocol={RelayProtocol}");
 
         transport.SetRelayServerData(new RelayServerData(alloc, RelayProtocol));
+
+        // ✅ لازم payload قبل StartHost (ConnectionApproval بيقرأه)
+        SetConnectionPayload(playerName, org);
 
         bool ok = NetworkManager.Singleton.StartHost();
         Debug.Log($"[Relay][HOST] StartHost() = {ok}");
 
-        // ✅ النقل للـ MeetingRoom هيتم من AutoLoadScene لما أول client يدخل
         return joinCode;
     }
 
-    public async Task JoinRoomAndClient(string joinCode)
+    public async Task JoinRoomAndClient(string joinCode, string playerName, string org)
     {
         if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
         {
@@ -77,18 +92,20 @@ public class RelayConnector : MonoBehaviour
             return;
         }
 
-        await UGSBootstrap.EnsureSignedIn("default");
+        await UGSBootstrap.EnsureSignedIn();
 
         Debug.Log($"[Relay][CLIENT] Joining with EXACT >>>{joinCode}<<< len={joinCode.Length}");
+        Debug.Log($"[Relay][CLIENT] Protocol={RelayProtocol}");
 
         var joinAlloc = await RelayService.Instance.JoinAllocationAsync(joinCode);
         Debug.Log($"[Relay][CLIENT] Joined region = {joinAlloc.Region}");
 
         transport.SetRelayServerData(new RelayServerData(joinAlloc, RelayProtocol));
 
+        // ✅ لازم payload قبل StartClient (عشان approval)
+        SetConnectionPayload(playerName, org);
+
         bool ok = NetworkManager.Singleton.StartClient();
         Debug.Log($"[Relay][CLIENT] StartClient() = {ok}");
-
-        // ✅ الكلاينت هيتنقل تلقائي لما السيرفر ينقل عبر NetworkSceneManager
     }
 }

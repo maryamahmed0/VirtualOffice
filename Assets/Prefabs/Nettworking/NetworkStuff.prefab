@@ -15,6 +15,8 @@ GameObject:
   - component: {fileID: 8892647673259130936}
   - component: {fileID: 5363991449032400809}
   - component: {fileID: 7630455046659395491}
+  - component: {fileID: 4005594234318499469}
+  - component: {fileID: 3189904071603898104}
   m_Layer: 0
   m_Name: NetworkStuff
   m_TagString: Untagged
@@ -86,6 +88,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_ProtocolType: 0
+  m_UseWebSockets: 1
+  m_UseEncryption: 0
   m_MaxPacketQueueSize: 128
   m_MaxPayloadSize: 6144
   m_HeartbeatTimeoutMS: 500
@@ -125,6 +129,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   meetingSceneName: MeetingRoom
+  hostFallbackDelay: 1
+  afterClientDelay: 0.25
 --- !u!114 &5363991449032400809
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -152,3 +158,28 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   transport: {fileID: 3110733603741032152}
+--- !u!114 &4005594234318499469
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6761646648352596178}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 847e8fe9050dd974f8f400bd3d2c7529, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &3189904071603898104
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6761646648352596178}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da34dd7c5509e0f468ff47fcc4007afd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  meetingSceneName: MeetingRoom
