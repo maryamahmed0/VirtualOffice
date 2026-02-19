@@ -2,60 +2,67 @@
 using Unity.Netcode;
 using System.Text;
 
-public class ConnectionApproval : MonoBehaviour
+public class ConnectionApprovalHandler : MonoBehaviour
 {
-    // في نسخة التطوير: نخلي الـHost هو اللي يحدد org المسموح بها من GameSession
-    private string allowedOrg;
-
     private void Awake()
     {
-        DontDestroyOnLoad(gameObject);
-    }
-
-    private void Start()
-    {
-        // لو هوست: هنعتبر org بتاع الغرفة = org اللي كتبه في اللوجين
-        // لو كلاينت: مش هنحتاج allowedOrg هنا لأنه مش بيعمل approval
-        if (NetworkManager.Singleton != null)
-            NetworkManager.Singleton.ConnectionApprovalCallback += ApprovalCheck;
-    }
-
-    private void OnDestroy()
-    {
-        if (NetworkManager.Singleton != null)
-            NetworkManager.Singleton.ConnectionApprovalCallback -= ApprovalCheck;
-    }
-
-    private void ApprovalCheck(NetworkManager.ConnectionApprovalRequest request,
-                               NetworkManager.ConnectionApprovalResponse response)
-    {
-        // الـCallback ده بيتنفذ على السيرفر بس
-        string payload = Encoding.UTF8.GetString(request.Payload);
-        string[] parts = payload.Split('|');
-
-        if (parts.Length < 2)
+        var nm = NetworkManager.Singleton;
+        if (nm == null)
         {
-            response.Approved = false;
-            response.Reason = "Invalid payload";
+            Debug.LogError("[APPROVAL] No NetworkManager.Singleton in Awake!");
             return;
         }
 
-        string clientOrg = parts[1].Trim().ToUpperInvariant();
+        nm.NetworkConfig.ConnectionApproval = true;
 
-        // أول مرة سيرفر يشتغل: ثبّت org بتاع الغرفة من بيانات الهوست
-        if (string.IsNullOrEmpty(allowedOrg))
+        // ✅ لازم تتسجل بدري
+        nm.ConnectionApprovalCallback -= Approval;
+        nm.ConnectionApprovalCallback += Approval;
+
+        Debug.Log("[APPROVAL] Callback installed ✅");
+    }
+
+    private void Approval(NetworkManager.ConnectionApprovalRequest req, NetworkManager.ConnectionApprovalResponse res)
+    {
+        string payload = "";
+        try
         {
-            allowedOrg = GameSessionData.Instance != null
-                ? (GameSessionData.Instance.OrgCode ?? "").Trim().ToUpperInvariant()
-                : "";
+            payload = req.Payload != null ? Encoding.UTF8.GetString(req.Payload) : "";
+        }
+        catch { payload = ""; }
+
+        // payload المتوقع: "Name|Org"
+        string name = "";
+        string org = "";
+
+        if (!string.IsNullOrEmpty(payload))
+        {
+            var parts = payload.Split('|');
+            if (parts.Length >= 2)
+            {
+                name = parts[0];
+                org = parts[1];
+            }
         }
 
-        bool ok = !string.IsNullOrEmpty(clientOrg) &&
-                  !string.IsNullOrEmpty(allowedOrg) &&
-                  clientOrg == allowedOrg;
+        bool ok = !string.IsNullOrWhiteSpace(name) && !string.IsNullOrWhiteSpace(org);
 
-        response.Approved = ok;
-        response.CreatePlayerObject = ok;
-        response.Reason = ok ? "" : "Organization mismatch";
+        // ✅ هنا انتي تقدري تعملي validation للـ org
+        // مثلاً: ok = ok && org == "111";
+
+        if (!ok)
+        {
+            res.Approved = false;
+            res.Reason = "Invalid payload";
+            res.Pending = false;
+            Debug.LogWarning($"[APPROVAL] Rejected client {req.ClientNetworkId}. payload='{payload}'");
+            return;
+        }
+
+        res.Approved = true;
+        res.CreatePlayerObject = true;
+        res.Pending = false;
+
+        Debug.Log($"[APPROVAL] Approved client {req.ClientNetworkId} name='{name}' org='{org}'");
     }
 }
