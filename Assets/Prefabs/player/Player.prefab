@@ -73,7 +73,7 @@ SpriteRenderer:
   m_SortingLayerID: -1098162539
   m_SortingLayer: 12
   m_SortingOrder: 0
-  m_Sprite: {fileID: 1262210250, guid: 6302cdd1daaf0784eb10aa281f9548f9, type: 3}
+  m_Sprite: {fileID: 1784709180, guid: 2d033c4e1c5d323409758b0f098bc5b5, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -490,7 +490,6 @@ GameObject:
   - component: {fileID: 5864002635306279541}
   - component: {fileID: 4856375323974169643}
   - component: {fileID: 9096403499276840011}
-  - component: {fileID: -7502051495128924325}
   - component: {fileID: -4245318745886533886}
   - component: {fileID: 1802508490400035633}
   - component: {fileID: 4453752075955476800}
@@ -513,7 +512,7 @@ Transform:
   m_GameObject: {fileID: 8575621701050902749}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 4.658437, y: 1.8528733, z: -0.04569962}
+  m_LocalPosition: {x: 0, y: 1.8528733, z: -0.04569962}
   m_LocalScale: {x: 1.5, y: 1.5, z: 1.5}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -553,8 +552,8 @@ CapsuleCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: 0.004012267, y: 0.016048511}
-  m_Size: {x: 0.74875295, y: 1.2888745}
+  m_Offset: {x: 0.004012267, y: -0.548564}
+  m_Size: {x: 0.74875295, y: 0.8781378}
   m_Direction: 0
 --- !u!50 &3643904807198252251
 Rigidbody2D:
@@ -755,18 +754,6 @@ MonoBehaviour:
         byte0059: 0
         byte0060: 0
         byte0061: 0
---- !u!114 &-7502051495128924325
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8575621701050902749}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 89863f3b2c51f2944bd4417b140faf50, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &-4245318745886533886
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -826,6 +813,7 @@ MonoBehaviour:
   roomSwitchCooldown: 0.35
   autoFindFallback: 1
   fallbackTag: LobbyRoom
+  ignoreTriggersFor: 1.5
 --- !u!114 &3902314045001843896
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -858,6 +846,7 @@ MonoBehaviour:
   state: 0
   otherClientId: 0
   activePrivateChannel: 
+  otherDisplayName: 
 --- !u!1 &8669705250435799492
 GameObject:
   m_ObjectHideFlags: 0
