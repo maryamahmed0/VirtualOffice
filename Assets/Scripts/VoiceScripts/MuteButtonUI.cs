@@ -56,7 +56,6 @@ public class MuteButtonUI : MonoBehaviour
         {
             voiceState.IsMicMuted.OnValueChanged += OnMuteChanged;
 
-            // أول تحديث
             UpdateButtonUI(voiceState.IsMicMuted.Value);
         }
     }

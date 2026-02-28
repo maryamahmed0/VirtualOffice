@@ -8,10 +8,10 @@ public class LobbyConnectUI : MonoBehaviour
     [Header("UI")]
     [SerializeField] private TMP_InputField nameInput;
     [SerializeField] private TMP_InputField orgInput;
-    [SerializeField] private TMP_InputField joinCodeInput; // optional
+    [SerializeField] private TMP_InputField joinCodeInput; 
     [SerializeField] private TMP_Text statusText;
     [SerializeField] private TMP_Text errorText;
-    [SerializeField] private TMP_Text joinCodeText; // optional
+    [SerializeField] private TMP_Text joinCodeText; 
 
     private RelayConnector relay;
     private bool busy;
@@ -30,12 +30,11 @@ public class LobbyConnectUI : MonoBehaviour
         Debug.Log($"[PAYLOAD] set >>>{payload}<<< bytes={nm.NetworkConfig.ConnectionData.Length}");
     }
 
-    // ✅ يشيل أي مسافات/رموز، ويخليها Uppercase
     private static string SanitizeJoinCode(string code)
     {
         if (string.IsNullOrWhiteSpace(code)) return "";
 
-        // keep only letters+digits
+
         System.Text.StringBuilder sb = new System.Text.StringBuilder(code.Length);
         foreach (char c in code)
         {
@@ -45,17 +44,23 @@ public class LobbyConnectUI : MonoBehaviour
 
         string cleaned = sb.ToString();
 
-        // لو المستخدم لزق نص كبير (مثلاً "Join Code: ABC123") خدّي آخر 6
         if (cleaned.Length > 6)
             cleaned = cleaned.Substring(cleaned.Length - 6, 6);
 
         return cleaned;
     }
 
+ 
     public async void OnEnterClicked()
     {
         if (busy) return;
         busy = true;
+
+        if (Application.platform == RuntimePlatform.WebGLPlayer)
+        {
+            WebVoiceGate.MarkUserGesture();
+            Debug.Log("[WEB] Enter clicked - gesture sent");
+        }
 
         errorText.text = "";
         statusText.text = "Connecting...";
@@ -66,7 +71,6 @@ public class LobbyConnectUI : MonoBehaviour
         string joinCodeRaw = joinCodeInput != null ? joinCodeInput.text : "";
         string joinCode = SanitizeJoinCode(joinCodeRaw);
 
-        // ✅ Validate basic inputs (مهم جدًا للـ ConnectionApproval)
         if (string.IsNullOrWhiteSpace(displayName))
         {
             errorText.text = "Please enter a name.";
@@ -83,7 +87,7 @@ public class LobbyConnectUI : MonoBehaviour
             return;
         }
 
-        // ✅ cache data
+
         if (GameSessionData.Instance != null)
             GameSessionData.Instance.SetUser(displayName, org);
 
@@ -110,14 +114,12 @@ public class LobbyConnectUI : MonoBehaviour
                 return;
             }
 
-            // ✅ لو فيه Networking شغال بالفعل، ما تبدأيش وضع تاني
             if (nm.IsListening)
             {
                 statusText.text = "Already running (Host/Client). Stop and retry.";
                 return;
             }
 
-            // ✅ أهم سطرين: ابعتي الـ payload BEFORE StartHost/StartClient
             ApplyConnectionPayload(displayName, org);
 
             if (string.IsNullOrEmpty(joinCode))
@@ -128,6 +130,7 @@ public class LobbyConnectUI : MonoBehaviour
                 string code = await relay.CreateRoomAndHost(displayName, org);
                 PlayerPrefs.SetString("JOIN_CODE", code);
                 PlayerPrefs.Save();
+
 
                 GameSessionData.Instance?.SetConnectionInfo(true, code);
 
@@ -148,6 +151,7 @@ public class LobbyConnectUI : MonoBehaviour
                     return;
                 }
 
+                //Client
                 statusText.text = "Joining room...";
                 GameSessionData.Instance?.SetConnectionInfo(false, joinCode);
 
@@ -156,6 +160,7 @@ public class LobbyConnectUI : MonoBehaviour
                 await relay.JoinRoomAndClient(joinCode, displayName, org);
                 PlayerPrefs.SetString("JOIN_CODE", joinCode);
                 PlayerPrefs.Save();
+
 
                 statusText.text = "Joined!";
             }

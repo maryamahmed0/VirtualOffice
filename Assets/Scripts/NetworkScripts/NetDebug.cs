@@ -30,7 +30,6 @@ public class NetDebug : MonoBehaviour
         var nm = NetworkManager.Singleton;
         if (nm == null) return;
 
-        // كل ثانيتين بس
         if (Time.frameCount % 120 == 0)
         {
             Debug.Log($"[NetDebug] IsConnectedClient={nm.IsConnectedClient} IsListening={nm.IsListening} ConnectedClients={nm.ConnectedClientsList.Count} ActiveScene={SceneManager.GetActiveScene().name}");

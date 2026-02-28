@@ -9,13 +9,10 @@ public class UGSBootstrap : MonoBehaviour
     private static Task initTask;
     private static string usedProfile;
 
-    // ✅ دالة واحدة كل المشروع يناديها
     public static async Task EnsureSignedIn()
     {
-        // بروفايل مختلف لكل نسخة
         string profile = Application.isEditor ? "editor" : "build";
 
-        // لو Initialize اتعمل قبل كده ببروفايل مختلف، الأفضل Restart
         if (initTask != null && usedProfile != profile)
         {
             Debug.LogWarning($"[UGS] Already initialized with profile '{usedProfile}'. Restart app to use '{profile}'.");
@@ -32,7 +29,7 @@ public class UGSBootstrap : MonoBehaviour
 
     private static async Task Init(string profile)
     {
-        const string envName = "production"; // ✅ خليها production
+        const string envName = "production"; 
 
         var options = new InitializationOptions()
             .SetEnvironmentName(envName)

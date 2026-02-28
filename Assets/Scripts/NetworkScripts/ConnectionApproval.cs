@@ -15,7 +15,6 @@ public class ConnectionApprovalHandler : MonoBehaviour
 
         nm.NetworkConfig.ConnectionApproval = true;
 
-        // ✅ لازم تتسجل بدري
         nm.ConnectionApprovalCallback -= Approval;
         nm.ConnectionApprovalCallback += Approval;
 
@@ -31,7 +30,6 @@ public class ConnectionApprovalHandler : MonoBehaviour
         }
         catch { payload = ""; }
 
-        // payload المتوقع: "Name|Org"
         string name = "";
         string org = "";
 
@@ -47,8 +45,7 @@ public class ConnectionApprovalHandler : MonoBehaviour
 
         bool ok = !string.IsNullOrWhiteSpace(name) && !string.IsNullOrWhiteSpace(org);
 
-        // ✅ هنا انتي تقدري تعملي validation للـ org
-        // مثلاً: ok = ok && org == "111";
+
 
         if (!ok)
         {

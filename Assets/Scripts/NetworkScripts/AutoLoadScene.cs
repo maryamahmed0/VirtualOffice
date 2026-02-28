@@ -43,7 +43,6 @@ public class AutoLoadScene : MonoBehaviour
 
         Debug.Log($"[AutoLoad] OnServerStarted IsServer={NetworkManager.Singleton.IsServer} IsHost={NetworkManager.Singleton.IsHost}");
 
-        // ✅ fallback للهوست فقط
         CancelInvoke(nameof(HostFallbackLoad));
         Invoke(nameof(HostFallbackLoad), hostFallbackDelay);
     }
@@ -52,7 +51,6 @@ public class AutoLoadScene : MonoBehaviour
     {
         if (!NetworkManager.Singleton.IsServer) return;
 
-        // لو already عملنا network load، خلاص
         if (networkLoadIssued) return;
 
         Debug.Log("[AutoLoad][SERVER] Fallback: loading MeetingRoom now (host only timing).");
@@ -63,16 +61,13 @@ public class AutoLoadScene : MonoBehaviour
     {
         if (!NetworkManager.Singleton.IsServer) return;
 
-        // تجاهل الهوست نفسه
         if (clientId == NetworkManager.Singleton.LocalClientId)
             return;
 
         Debug.Log($"[AutoLoad][SERVER] Real client connected (id={clientId}). Forcing scene load for sync...");
 
-        // ✅ أول ما يدخل client حقيقي، اوقفي fallback
         CancelInvoke(nameof(HostFallbackLoad));
 
-        // ✅ حتى لو الهوست already في MeetingRoom، هنعمل network load تاني لضمان أن الكلاينت يستلم SceneEvent
         StartCoroutine(LoadAfterShortDelay());
     }
 
@@ -90,10 +85,9 @@ public class AutoLoadScene : MonoBehaviour
             return;
         }
 
-        // لو مش forced وسبق أصدرنا load → متكررّيش
+  
         if (networkLoadIssued && !forceEvenIfIssued) return;
 
-        // هنا بنسمح بالـ force لو دخل client متأخر
         networkLoadIssued = true;
 
         Debug.Log($"[AutoLoad][SERVER] NetworkSceneManager.LoadScene -> {meetingSceneName}");
