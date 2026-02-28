@@ -13,7 +13,6 @@ public class RelayConnector : MonoBehaviour
 
     public string CurrentJoinCode { get; private set; }
 
-    // ✅ Protocol: WebGL = wss, غير كده = dtls (الأفضل للويندوز/ايدتور)
     private static string RelayProtocol => "wss";
     private void Awake()
     {
@@ -75,7 +74,6 @@ public class RelayConnector : MonoBehaviour
 
         transport.SetRelayServerData(new RelayServerData(alloc, RelayProtocol));
 
-        // ✅ لازم payload قبل StartHost (ConnectionApproval بيقرأه)
         SetConnectionPayload(playerName, org);
 
         bool ok = NetworkManager.Singleton.StartHost();
@@ -102,7 +100,6 @@ public class RelayConnector : MonoBehaviour
 
         transport.SetRelayServerData(new RelayServerData(joinAlloc, RelayProtocol));
 
-        // ✅ لازم payload قبل StartClient (عشان approval)
         SetConnectionPayload(playerName, org);
 
         bool ok = NetworkManager.Singleton.StartClient();

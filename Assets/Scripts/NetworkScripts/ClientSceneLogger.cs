@@ -17,7 +17,6 @@ public class ClientSceneLogger : MonoBehaviour
 
         Debug.Log($"[ClientSceneLogger] NM name={nm.gameObject.name} scene={nm.gameObject.scene.name} EnableSceneManagement={nm.NetworkConfig.EnableSceneManagement}");
 
-        // ✅ استني لحد ما الـ SceneManager يبقى جاهز
         while (nm.SceneManager == null)
         {
             Debug.Log("[ClientSceneLogger] Waiting for SceneManager...");

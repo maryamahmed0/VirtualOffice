@@ -20,10 +20,8 @@ public class PlayerIdentity : NetworkBehaviour
 
         DisplayName.OnValueChanged += (_, __) => RefreshName();
 
-        // اعرض اللي موجود (حتى لو فاضي) عشان مايبقاش Null
         RefreshName();
 
-        // بس الـOwner هو اللي يبعت الاسم للسيرفر
         if (!IsOwner) return;
 
         string n = GetLocalDisplayName();
@@ -32,14 +30,12 @@ public class PlayerIdentity : NetworkBehaviour
 
     private string GetLocalDisplayName()
     {
-        // 1) من GameSessionData
+  
         string n = (GameSessionData.Instance != null) ? GameSessionData.Instance.DisplayName : "";
 
-        // 2) fallback من PlayerPrefs (لو المشهد اتفتح قبل ما SessionData تتجهز)
         if (string.IsNullOrWhiteSpace(n))
             n = PlayerPrefs.GetString("PLAYER_NAME", "");
 
-        // sanitize
         n = (n ?? "").Trim();
         if (n.Length > 16) n = n.Substring(0, 16);
         if (n.Length < 2) n = "Player";

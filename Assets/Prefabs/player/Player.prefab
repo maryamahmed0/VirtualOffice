@@ -71,7 +71,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -1098162539
-  m_SortingLayer: 7
+  m_SortingLayer: 12
   m_SortingOrder: 0
   m_Sprite: {fileID: 1262210250, guid: 6302cdd1daaf0784eb10aa281f9548f9, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -489,14 +489,17 @@ GameObject:
   - component: {fileID: 1485183727212166647}
   - component: {fileID: 5864002635306279541}
   - component: {fileID: 4856375323974169643}
-  - component: {fileID: -991079059330094910}
   - component: {fileID: 9096403499276840011}
   - component: {fileID: -7502051495128924325}
   - component: {fileID: -4245318745886533886}
   - component: {fileID: 1802508490400035633}
+  - component: {fileID: 4453752075955476800}
+  - component: {fileID: 7965961220462738843}
+  - component: {fileID: 3902314045001843896}
+  - component: {fileID: 6831887182969855789}
   m_Layer: 0
   m_Name: Player
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -670,18 +673,6 @@ MonoBehaviour:
   InLocalSpace: 0
   Interpolate: 1
   SlerpPosition: 0
---- !u!114 &-991079059330094910
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8575621701050902749}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c441cfc854abf7d4b882ff8d40de288d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &9096403499276840011
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -804,6 +795,69 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   muteIconObject: {fileID: 768270901898887357}
   UnmuteIconObject: {fileID: 8669705250435799492}
+--- !u!114 &4453752075955476800
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8575621701050902749}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2424bbc94bde2784fa8a9b18229711e3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &7965961220462738843
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8575621701050902749}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 174b2f914f0c8614ba6587d8eff401d3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  currentRoomId: 
+  currentRoomType: 0
+  currentTeamId: 
+  defaultFallbackRoom: {fileID: 0}
+  roomSwitchCooldown: 0.35
+  autoFindFallback: 1
+  fallbackTag: LobbyRoom
+--- !u!114 &3902314045001843896
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8575621701050902749}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 11ed396a0f0e6d44d903a53a54111910, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  callRange: 2.5
+  scanInterval: 0.25
+  canCall: 0
+  nearestClientId: 0
+  nearestDist: 0
+--- !u!114 &6831887182969855789
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8575621701050902749}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: af802e42997d0a348a47a5c715d82fce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  state: 0
+  otherClientId: 0
+  activePrivateChannel: 
 --- !u!1 &8669705250435799492
 GameObject:
   m_ObjectHideFlags: 0

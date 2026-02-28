@@ -6,9 +6,11 @@ public class PlayerVoicePresenter : NetworkBehaviour
     private PlayerVoiceState voiceState;
 
     [Header("UI")]
-    [SerializeField] private GameObject muteIconObject; 
-    [SerializeField] private GameObject UnmuteIconObject; 
+    [SerializeField] private GameObject muteIconObject;
+    [SerializeField] private GameObject UnmuteIconObject;
 
+    private bool _subscribed;
+    private bool _appliedOnceAfterLogin;
 
     private void Awake()
     {
@@ -18,61 +20,79 @@ public class PlayerVoicePresenter : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         if (voiceState == null) voiceState = GetComponent<PlayerVoiceState>();
+        if (voiceState == null) return;
 
-        // اسمع أي تغيير في المتغير الشبكي (هيحصل لكل الكلاينت)
-        voiceState.IsMicMuted.OnValueChanged += OnMuteChanged;
-
-        // اول ما اللاعب يظهر: طبّق الحالة الحالية على الـ UI عند كل الناس
-        OnMuteChanged(false, voiceState.IsMicMuted.Value);
-
-        // لو ده الـ Owner (انا)، طبّق كمان على Vivox (Local)
-        if (IsOwner)
+        if (!_subscribed)
         {
-            ApplyVivoxMute(voiceState.IsMicMuted.Value);
+            voiceState.IsMicMuted.OnValueChanged += OnMuteChanged;
+            _subscribed = true;
         }
+
+        UpdateMuteUI(voiceState.IsMicMuted.Value);
+
+        if (IsOwner)
+            InvokeRepeating(nameof(TryApplyAfterLogin), 0.2f, 0.2f);
     }
 
     public override void OnNetworkDespawn()
     {
-        if (voiceState != null)
+        if (_subscribed && voiceState != null)
+        {
             voiceState.IsMicMuted.OnValueChanged -= OnMuteChanged;
+            _subscribed = false;
+        }
+
+        CancelInvoke(nameof(TryApplyAfterLogin));
+    }
+
+    private void TryApplyAfterLogin()
+    {
+        if (_appliedOnceAfterLogin) { CancelInvoke(nameof(TryApplyAfterLogin)); return; }
+
+        if (VoiceManager.Instance == null) return;
+        if (!VoiceManager.Instance.IsLoggedIn) return;
+
+        ApplyVivoxMute(voiceState.IsMicMuted.Value);
+        _appliedOnceAfterLogin = true;
+
+        CancelInvoke(nameof(TryApplyAfterLogin));
     }
 
     public void ToggleMute()
     {
         if (!IsOwner) return;
+        if (voiceState == null) return;
 
         bool newMuted = !voiceState.IsMicMuted.Value;
 
-        ApplyVivoxMute(newMuted);
-        UpdateMuteUI(newMuted); // local instant feedback (اختياري)
+        UpdateMuteUI(newMuted);
 
         voiceState.SetMutedServerRpc(newMuted);
+
+        ApplyVivoxMute(newMuted);
     }
 
     private void OnMuteChanged(bool oldValue, bool newValue)
     {
-        // (A) حدّث UI عند كل الناس (أيقونة فوق الراس/اسم اللاعب)
         UpdateMuteUI(newValue);
 
-        // (B) لو ده صاحب الشخصية على جهازه، خلي Vivox يطابق الحالة برضو
         if (IsOwner)
             ApplyVivoxMute(newValue);
     }
 
     private void ApplyVivoxMute(bool muted)
     {
-        // مهم: ما تعمليش Login/Join هنا. ده شغل VoiceAutoJoin عندك.
-        if (VoiceManager.Instance != null)
-            VoiceManager.Instance.SetMute(muted);
+        if (!IsOwner) return;
+
+        if (VoiceManager.Instance == null) return;
+        if (!VoiceManager.Instance.IsLoggedIn) return;
+
+        VoiceManager.Instance.SetMute(muted);
     }
 
     private void UpdateMuteUI(bool muted)
     {
-        if (muteIconObject != null)
-            muteIconObject.SetActive(muted);
-
-        if (UnmuteIconObject != null)
-            UnmuteIconObject.SetActive(!muted);
+        if (muteIconObject != null) muteIconObject.SetActive(muted);
+        if (UnmuteIconObject != null) UnmuteIconObject.SetActive(!muted);
     }
 }

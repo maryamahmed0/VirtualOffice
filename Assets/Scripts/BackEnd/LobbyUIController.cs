@@ -57,21 +57,17 @@ public class LobbyUIController : MonoBehaviour
             return;
         }
 
-        // حفظ البيانات (ينفع بعدين تيجي من الباك بدل الحقول)
         GameSessionData.Instance.SetUser(displayName, orgCode);
 
-        // اقفل UI أثناء الاتصال
+       
         enterButton.interactable = false;
         nameInput.interactable = false;
         orgInput.interactable = false;
         statusText.text = "Connecting...";
 
-        // ConnectionData: name|org
         string payload = $"{displayName}|{orgCode}";
         NetworkManager.Singleton.NetworkConfig.ConnectionData = Encoding.UTF8.GetBytes(payload);
 
-        // Strategy حالياً (للتجربة): جرّبي Client، لو مفيش سيرفر يبقى Host
-        // لو مش عايزة ده دلوقتي: خليه دايمًا Host أثناء التطوير.
         NetworkManager.Singleton.StartClient();
         StartCoroutine(ClientFallbackToHost());
     }
@@ -92,7 +88,6 @@ public class LobbyUIController : MonoBehaviour
             yield return null;
         }
 
-        // فشل الاتصال → نعمل Host
         NetworkManager.Singleton.Shutdown();
         yield return null;
 
@@ -106,7 +101,6 @@ public class LobbyUIController : MonoBehaviour
         statusText.text = "";
         errorText.text = msg;
 
-        // رجّعي UI
         nameInput.interactable = true;
         orgInput.interactable = true;
         RefreshUI();

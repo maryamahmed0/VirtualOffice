@@ -10,7 +10,6 @@ public class RoomJoinCodeUI : MonoBehaviour
         var s = GameSessionData.Instance;
         if (s == null || joinCodeText == null) return;
 
-        // نعرضه بس للـ Host
         joinCodeText.text = (s.IsHost && !string.IsNullOrEmpty(s.LastJoinCode))
             ? $"Join Code: {s.LastJoinCode}"
             : "";

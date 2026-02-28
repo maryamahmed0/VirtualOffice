@@ -12,7 +12,6 @@ public class SpawnAfterSceneReady : NetworkBehaviour
 
     private IEnumerator DelayedSeatSpawn()
     {
-        // استني عشان MeetingScene وSeatManager يجهزوا
         yield return null;
         yield return null;
         yield return null;

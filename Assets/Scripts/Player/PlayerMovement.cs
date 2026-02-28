@@ -24,7 +24,6 @@ public class PlayerMovement : NetworkBehaviour
 
     private void FixedUpdate()
     {
-        // السيرفر بس هو اللي يطبق الفيزيكس
         if (!IsServer) return;
 
         rb.velocity = desiredVelocity * moveSpeed;

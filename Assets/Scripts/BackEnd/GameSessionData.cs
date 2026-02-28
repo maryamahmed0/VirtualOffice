@@ -7,7 +7,6 @@ public class GameSessionData : MonoBehaviour
     public string DisplayName { get; private set; }
     public string OrgCode { get; private set; }
 
-    // ✅ جديد
     public string LastJoinCode { get; private set; } = "";
     public bool IsHost { get; private set; }
 
@@ -29,7 +28,6 @@ public class GameSessionData : MonoBehaviour
         OrgCode = orgCode;
     }
 
-    // ✅ جديد
     public void SetConnectionInfo(bool isHost, string joinCode)
     {
         IsHost = isHost;

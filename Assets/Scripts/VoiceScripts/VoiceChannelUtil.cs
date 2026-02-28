@@ -12,7 +12,6 @@ public static class VoiceChannelUtil
         if (string.IsNullOrEmpty(org)) org = "ORG";
         if (string.IsNullOrEmpty(joinCode)) joinCode = "ROOM";
 
-        // مثال: ORG_ABC123
         return $"{org}_{joinCode}";
     }
 
@@ -27,7 +26,6 @@ public static class VoiceChannelUtil
             else if (c == '_' || c == '-') sb.Append('_');
         }
 
-        // قللي الطول احتياط
         string clean = sb.ToString();
         if (clean.Length > 24) clean = clean.Substring(0, 24);
         return clean;

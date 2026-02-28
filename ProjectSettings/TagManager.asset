@@ -3,7 +3,8 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - LobbyRoom
   layers:
   - Default
   - TransparentFX
@@ -56,8 +57,23 @@ TagManager:
   - name: FrontObj
     uniqueID: 3427296855
     locked: 0
+  - name: BackChair
+    uniqueID: 1487239349
+    locked: 0
+  - name: BackTable
+    uniqueID: 280742239
+    locked: 0
+  - name: TeamSperator
+    uniqueID: 2475430783
+    locked: 0
+  - name: FrontTable
+    uniqueID: 3394953131
+    locked: 0
   - name: TopObj
     uniqueID: 1324552773
+    locked: 0
+  - name: FrontChair
+    uniqueID: 807546503
     locked: 0
   - name: Player
     uniqueID: 3196804757

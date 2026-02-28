@@ -6,7 +6,6 @@ public class SeatManager : NetworkBehaviour
 {
     [SerializeField] private Seat[] seats;
 
-    // clientId -> seatIndex
     private readonly Dictionary<ulong, int> assigned = new();
     private readonly List<int> free = new();
 
@@ -40,13 +39,11 @@ public class SeatManager : NetworkBehaviour
 
     public bool TryAssignRandomSeat(ulong clientId, out Vector3 spawnPos)
     {
-        // لازم ندي قيمة للـ out في كل الحالات
         spawnPos = Vector3.zero;
 
         if (!IsServer) return false;
         if (seats == null || seats.Length == 0) return false;
 
-        // لو كان واخد كرسي قبل كده
         if (assigned.TryGetValue(clientId, out int existingIndex))
         {
             if (existingIndex < 0 || existingIndex >= seats.Length) return false;
@@ -54,7 +51,6 @@ public class SeatManager : NetworkBehaviour
             return true;
         }
 
-        // مفيش كراسي فاضية
         if (free.Count == 0) return false;
 
         int pick = Random.Range(0, free.Count);
@@ -76,7 +72,6 @@ public class SeatManager : NetworkBehaviour
         {
             assigned.Remove(clientId);
 
-            // رجّعيه للـ free لو مش موجود
             if (!free.Contains(seatIndex))
                 free.Add(seatIndex);
 

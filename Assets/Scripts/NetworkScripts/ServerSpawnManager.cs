@@ -28,7 +28,6 @@ public class ServerSpawnManager : MonoBehaviour
 
     private IEnumerator AssignSeatNextFrame(ulong clientId)
     {
-        // مهم: نستنى فريم عشان PlayerObject يبقى اتعمله spawn
         yield return null;
 
         if (seatManager == null)

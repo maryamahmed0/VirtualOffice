@@ -11,8 +11,5 @@ public class OwnerTag : NetworkBehaviour
             Debug.Log($"[{name}] OnNetworkSpawn | IsOwner={IsOwner} | IsLocalPlayer={IsLocalPlayer} | OwnerClientId={OwnerClientId} | LocalClientId={NetworkManager.Singleton.LocalClientId}");
         }
          
-
-
-
     }
 }
