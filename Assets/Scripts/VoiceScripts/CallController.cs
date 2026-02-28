@@ -11,18 +11,20 @@ public class CallController : NetworkBehaviour
     [SerializeField] private CallState state = CallState.Idle;
     [SerializeField] private ulong otherClientId;
     [SerializeField] private string activePrivateChannel;
+    [SerializeField] private string otherDisplayName;
 
     public CallState State => state;
     public ulong OtherClientId => otherClientId;
     public string ActivePrivateChannel => activePrivateChannel;
+    public string OtherDisplayName => otherDisplayName;
 
     public event Action<string, ulong> OnIncomingCall;
     public event Action OnCallEnded;
-    public event Action<string> OnCallStarted;              // هنستخدمها لفتح InCall UI (Connecting)
-    public event Action<string> OnVoiceStatusChanged;        // "Connecting..." / "Connected"
+    public event Action<string> OnCallStarted;
+    public event Action<string> OnVoiceStatusChanged;
 
     private VoiceCoordinator _voiceCoord;
-    private int _voiceStartVersion; // لإلغاء أي Task قديمة
+    private int _voiceStartVersion;
 
     public override void OnNetworkSpawn()
     {
@@ -55,9 +57,13 @@ public class CallController : NetworkBehaviour
         }
 
         otherClientId = targetClientId;
+
+        // ✅ حاولي تجيبي اسمه لو موجود محليًا (هيتثبت أكتر من السيرفر بعد ثواني)
+        otherDisplayName = PlayerIdentity.GetName(targetClientId);
+
         state = CallState.RingingOut;
 
-        Debug.Log($"[CALL] RequestCall -> target={targetClientId} from={NetworkManager.Singleton.LocalClientId}");
+        Debug.Log($"[CALL] RequestCall -> target={targetClientId} from={NetworkManager.Singleton.LocalClientId} targetName={otherDisplayName}");
         CallRpcDispatcher.Instance.RequestCallServerRpc(targetClientId, ResolveName(), NetworkManager.Singleton.LocalClientId);
     }
 
@@ -78,8 +84,7 @@ public class CallController : NetworkBehaviour
         Debug.Log($"[CALL] DeclineCall by {NetworkManager.Singleton.LocalClientId} other={otherClientId}");
 
         CallRpcDispatcher.Instance.DeclineCallServerRpc(otherClientId, NetworkManager.Singleton.LocalClientId);
-
-        ResetLocalAndNotify(); // محليًا
+        ResetLocalAndNotify();
     }
 
     public void CancelOutgoing()
@@ -104,7 +109,6 @@ public class CallController : NetworkBehaviour
 
         CallRpcDispatcher.Instance.EndCallServerRpc(otherClientId, NetworkManager.Singleton.LocalClientId, activePrivateChannel);
 
-        // محليًا نقفل فورًا (ولو جاله RPC بعد كده هيتجاهله بالـ guard)
         if (_voiceCoord != null)
             _ = _voiceCoord.EndPrivateCallAsync();
 
@@ -121,41 +125,49 @@ public class CallController : NetworkBehaviour
         state = CallState.RingingIn;
         otherClientId = callerClientId;
 
+        // ✅ اسم اللي بيرن
+        otherDisplayName = callerName;
+
         OnIncomingCall?.Invoke(callerName, callerClientId);
         Debug.Log($"[CALL] Incoming (dispatcher) from {callerName} ({callerClientId})");
     }
 
-    public void ReceiveOutgoingRingingFromDispatcher(ulong targetClientId)
+    // ✅ السيرفر هيرجعلك اسم التارجت هنا عشان Outgoing card تبقى دايمًا صح
+    public void ReceiveOutgoingRingingFromDispatcher(ulong targetClientId, string targetName)
     {
         if (!IsOwner) return;
-        Debug.Log($"[CALL] Ringing (dispatcher) target {targetClientId}...");
+
+        otherClientId = targetClientId;
+        if (!string.IsNullOrWhiteSpace(targetName))
+            otherDisplayName = targetName;
+
+        Debug.Log($"[CALL] Ringing (dispatcher) target {targetClientId} name={otherDisplayName}...");
     }
 
-    public void ReceiveStartPrivateFromDispatcher(string channel, ulong callerId, ulong calleeId)
+    // ✅ نسخة جديدة: بتستقبل الاسمين من السيرفر
+    public void ReceiveStartPrivateFromDispatcher(string channel, ulong callerId, ulong calleeId, string callerName, string calleeName)
     {
         if (!IsOwner) return;
 
-        // ✅ بدل ما ندخل InCall مباشرة: ندخل Connecting الأول
         state = CallState.Connecting;
         activePrivateChannel = channel;
 
-        otherClientId = (NetworkManager.Singleton.LocalClientId == callerId) ? calleeId : callerId;
+        ulong localId = NetworkManager.Singleton.LocalClientId;
 
-        Debug.Log("[CALL] Start private (dispatcher) channel = " + channel);
+        otherClientId = (localId == callerId) ? calleeId : callerId;
+        otherDisplayName = (localId == callerId) ? calleeName : callerName;
 
-        // ✅ افتحي UI على طول + اظهري Connecting...
+        Debug.Log($"[CALL] Start private (dispatcher) channel={channel} other={otherClientId} otherName={otherDisplayName}");
+
         OnCallStarted?.Invoke(channel);
         OnVoiceStatusChanged?.Invoke("Connecting...");
 
-        // ✅ شغّلي الصوت async، وبعد ما ينجح حولي InCall + Connected
         _ = StartPrivateVoiceFlowAsync(channel);
     }
 
     public void ReceiveRemoteEndedFromDispatcher(ulong whoEnded, string channel)
     {
         if (!IsOwner) return;
-
-        // ✅ guard ضد الدوبل-End (لو احنا اللي قفلنا بالفعل)
         if (state == CallState.Idle) return;
 
         Debug.Log($"[CALL] Remote ended (dispatcher) who={whoEnded} channel={channel}");
@@ -202,13 +214,12 @@ public class CallController : NetworkBehaviour
         {
             Debug.LogWarning("[CALL] No VoiceCoordinator found.");
             OnVoiceStatusChanged?.Invoke("Voice unavailable");
-            state = CallState.InCall; // UI تفضل ظاهرة عالأقل
+            state = CallState.InCall;
             return;
         }
 
         bool ok = await _voiceCoord.StartPrivateCallAsync(channel);
 
-        // ✅ لو حصل End/Reset أثناء الـ await
         if (myVer != _voiceStartVersion) return;
         if (state == CallState.Idle) return;
         if (activePrivateChannel != channel) return;
@@ -222,7 +233,6 @@ public class CallController : NetworkBehaviour
         {
             OnVoiceStatusChanged?.Invoke("Voice failed");
 
-            // اقفلي المكالمة للطرفين لو الصوت فشل
             if (otherClientId != 0 && NetworkManager.Singleton != null)
             {
                 CallRpcDispatcher.Instance.EndCallServerRpc(otherClientId, NetworkManager.Singleton.LocalClientId, channel);
@@ -235,11 +245,12 @@ public class CallController : NetworkBehaviour
 
     private void ResetLocalAndNotify()
     {
-        _voiceStartVersion++; // يلغي أي await قديم
+        _voiceStartVersion++;
 
         state = CallState.Idle;
         otherClientId = 0;
         activePrivateChannel = null;
+        otherDisplayName = null;
 
         OnCallEnded?.Invoke();
     }

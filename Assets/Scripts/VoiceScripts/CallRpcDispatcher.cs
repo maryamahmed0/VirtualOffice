@@ -20,7 +20,6 @@ public class CallRpcDispatcher : NetworkBehaviour
         if (localPlayer != null && localPlayer.TryGetComponent(out CallController callFromPlayer))
             return callFromPlayer;
 
-        // ✅ fallback: دور على CallController owner في المشهد
         var all = Object.FindObjectsByType<CallController>(FindObjectsSortMode.None);
         foreach (var c in all)
         {
@@ -28,6 +27,20 @@ public class CallRpcDispatcher : NetworkBehaviour
         }
 
         return null;
+    }
+
+    private string GetNameOnServer(ulong clientId)
+    {
+        if (NetworkManager.Singleton != null &&
+            NetworkManager.Singleton.ConnectedClients.TryGetValue(clientId, out var client) &&
+            client.PlayerObject != null &&
+            client.PlayerObject.TryGetComponent<PlayerIdentity>(out var id))
+        {
+            var n = id.DisplayName.Value.ToString();
+            if (!string.IsNullOrWhiteSpace(n)) return n;
+        }
+
+        return PlayerIdentity.GetName(clientId);
     }
 
     // ======================
@@ -39,17 +52,21 @@ public class CallRpcDispatcher : NetworkBehaviour
     {
         Debug.Log($"[CALLRPC][SERVER] Request from {callerClientId} -> {targetClientId} name={callerName}");
 
+        // ابعتي للTarget: اسم الـ caller
         var sendTarget = new ClientRpcParams
         {
             Send = new ClientRpcSendParams { TargetClientIds = new[] { targetClientId } }
         };
         IncomingCallClientRpc(callerName, callerClientId, sendTarget);
 
+        // ابعتي للCaller: Ringing + اسم الـ target (عشان outgoing card تبقى صح)
+        string targetName = GetNameOnServer(targetClientId);
+
         var sendCaller = new ClientRpcParams
         {
             Send = new ClientRpcSendParams { TargetClientIds = new[] { callerClientId } }
         };
-        OutgoingRingingClientRpc(targetClientId, sendCaller);
+        OutgoingRingingClientRpc(targetClientId, targetName, sendCaller);
     }
 
     [ClientRpc]
@@ -62,12 +79,12 @@ public class CallRpcDispatcher : NetworkBehaviour
     }
 
     [ClientRpc]
-    private void OutgoingRingingClientRpc(ulong targetClientId, ClientRpcParams rpcParams = default)
+    private void OutgoingRingingClientRpc(ulong targetClientId, string targetName, ClientRpcParams rpcParams = default)
     {
         var call = FindLocalCallController();
         if (call == null) return;
 
-        call.ReceiveOutgoingRingingFromDispatcher(targetClientId);
+        call.ReceiveOutgoingRingingFromDispatcher(targetClientId, targetName);
     }
 
     // ======================
@@ -79,7 +96,9 @@ public class CallRpcDispatcher : NetworkBehaviour
     {
         Debug.Log($"[CALLRPC][SERVER] Accept caller={callerClientId} callee={calleeClientId}");
 
-        // ممكن تسيبيه زي ما هو، ده safe لأن clientIds عادة صغيرة
+        string callerName = GetNameOnServer(callerClientId);
+        string calleeName = GetNameOnServer(calleeClientId);
+
         string channel =
             $"P_{Mathf.Min((int)callerClientId, (int)calleeClientId)}_{Mathf.Max((int)callerClientId, (int)calleeClientId)}_{UnityEngine.Random.Range(1000, 9999)}";
 
@@ -88,20 +107,20 @@ public class CallRpcDispatcher : NetworkBehaviour
             Send = new ClientRpcSendParams { TargetClientIds = new[] { callerClientId, calleeClientId } }
         };
 
-        StartPrivateCallClientRpc(channel, callerClientId, calleeClientId, sendBoth);
+        StartPrivateCallClientRpc(channel, callerClientId, calleeClientId, callerName, calleeName, sendBoth);
     }
 
     [ClientRpc]
-    private void StartPrivateCallClientRpc(string channel, ulong callerId, ulong calleeId, ClientRpcParams rpcParams = default)
+    private void StartPrivateCallClientRpc(string channel, ulong callerId, ulong calleeId, string callerName, string calleeName, ClientRpcParams rpcParams = default)
     {
         var call = FindLocalCallController();
         if (call == null) return;
 
-        call.ReceiveStartPrivateFromDispatcher(channel, callerId, calleeId);
+        call.ReceiveStartPrivateFromDispatcher(channel, callerId, calleeId, callerName, calleeName);
     }
 
     // ======================
-    // End (Server -> Both) ✅
+    // End (Server -> Both)
     // ======================
 
     [ServerRpc(RequireOwnership = false)]
@@ -109,7 +128,6 @@ public class CallRpcDispatcher : NetworkBehaviour
     {
         Debug.Log($"[CALLRPC][SERVER] End who={whoEnded} -> other={otherClientId} channel={channel}");
 
-        // ✅ ابعتي للاتنين عشان تبقي 100% UI تتقفل حتى لو اللي قفل محليًا حصل lag/state glitch
         var sendBoth = new ClientRpcParams
         {
             Send = new ClientRpcSendParams { TargetClientIds = new[] { otherClientId, whoEnded } }

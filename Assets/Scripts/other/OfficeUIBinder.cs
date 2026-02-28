@@ -21,9 +21,15 @@ public class OfficeUIBinder : MonoBehaviour
 
     [Header("In Call")]
     [SerializeField] private TMP_Text inCallNameText;
-    [SerializeField] private TMP_Text inCallStatusText; // ✅ ضيفي Text هنا في الـ Inspector
+    [SerializeField] private TMP_Text inCallStatusText;
     [SerializeField] private Button endButton;
     [SerializeField] private Button inCallMuteButton;
+
+    [Header("InCall Status Colors")]
+    [SerializeField] private Color connectingColor = Color.yellow;
+    [SerializeField] private Color connectedColor = Color.green;
+    [SerializeField] private Color failedColor = Color.red;          // ✅ جديد
+    [SerializeField] private Color defaultStatusColor = Color.white;
 
     [Header("InCall Mic Icons (GameObjects)")]
     [SerializeField] private GameObject inCallMicOnIcon;
@@ -94,11 +100,25 @@ public class OfficeUIBinder : MonoBehaviour
             if (outgoingCard) outgoingCard.SetActive(call.State == CallController.CallState.RingingOut);
             if (incomingCard) incomingCard.SetActive(call.State == CallController.CallState.RingingIn);
 
-            // ✅ مهم: inCallBar تظهر في Connecting أو InCall
             if (inCallBar) inCallBar.SetActive(
                 call.State == CallController.CallState.Connecting ||
                 call.State == CallController.CallState.InCall
             );
+
+            if (outgoingNameText && call.State == CallController.CallState.RingingOut)
+            {
+                outgoingNameText.text = string.IsNullOrWhiteSpace(call.OtherDisplayName)
+                    ? $"User {call.OtherClientId}"
+                    : call.OtherDisplayName;
+            }
+
+            if (inCallNameText &&
+                (call.State == CallController.CallState.Connecting || call.State == CallController.CallState.InCall))
+            {
+                inCallNameText.text = string.IsNullOrWhiteSpace(call.OtherDisplayName)
+                    ? "In Call"
+                    : call.OtherDisplayName;
+            }
         }
     }
 
@@ -128,14 +148,45 @@ public class OfficeUIBinder : MonoBehaviour
         if (incomingCard) incomingCard.SetActive(false);
         if (outgoingCard) outgoingCard.SetActive(false);
 
-        if (inCallNameText) inCallNameText.text = "In Call";
-        if (inCallStatusText) inCallStatusText.text = "Connecting...";
+        if (inCallNameText)
+            inCallNameText.text = string.IsNullOrWhiteSpace(call?.OtherDisplayName) ? "In Call" : call.OtherDisplayName;
+
+        if (inCallStatusText)
+        {
+            inCallStatusText.text = "Connecting...";
+            inCallStatusText.color = connectingColor;
+        }
+
         if (inCallBar) inCallBar.SetActive(true);
     }
 
     private void HandleVoiceStatus(string status)
     {
-        if (inCallStatusText) inCallStatusText.text = status;
+        if (!inCallStatusText) return;
+
+        inCallStatusText.text = status;
+
+        // ✅ Coloring rules
+        if (status == "Connected")
+        {
+            inCallStatusText.color = connectedColor;
+            return;
+        }
+
+        if (!string.IsNullOrEmpty(status) &&
+            (status.Contains("failed") || status.Contains("Failed") || status.Contains("error") || status.Contains("Error")))
+        {
+            inCallStatusText.color = failedColor;
+            return;
+        }
+
+        if (!string.IsNullOrEmpty(status) && status.StartsWith("Connecting"))
+        {
+            inCallStatusText.color = connectingColor;
+            return;
+        }
+
+        inCallStatusText.color = defaultStatusColor;
     }
 
     private void HandleCallEnded()
@@ -146,7 +197,11 @@ public class OfficeUIBinder : MonoBehaviour
         if (outgoingCard) outgoingCard.SetActive(false);
         if (inCallBar) inCallBar.SetActive(false);
 
-        if (inCallStatusText) inCallStatusText.text = "";
+        if (inCallStatusText)
+        {
+            inCallStatusText.text = "";
+            inCallStatusText.color = defaultStatusColor;
+        }
     }
 
     private void ToggleMute()
@@ -169,5 +224,7 @@ public class OfficeUIBinder : MonoBehaviour
         if (incomingCard) incomingCard.SetActive(false);
         if (inCallBar) inCallBar.SetActive(false);
         if (meetingMicPanel) meetingMicPanel.SetActive(false);
+
+        if (inCallStatusText) inCallStatusText.color = defaultStatusColor;
     }
 }

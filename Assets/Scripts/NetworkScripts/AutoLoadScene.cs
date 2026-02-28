@@ -5,11 +5,10 @@ using UnityEngine.SceneManagement;
 
 public class AutoLoadScene : MonoBehaviour
 {
-    [SerializeField] private string meetingSceneName = "MeetingRoom";
+    [SerializeField] private string SceneName = "TheOffice";
 
     [Header("Timing")]
-    [SerializeField] private float hostFallbackDelay = 1.0f;     // هوست يدخل حتى لو محدش دخل
-    [SerializeField] private float afterClientDelay = 0.25f;     // استنى شوية بعد دخول الكلاينت قبل load
+    [SerializeField] private float hostFallbackDelay = 1.0f;
 
     private bool networkLoadIssued;
 
@@ -23,7 +22,6 @@ public class AutoLoadScene : MonoBehaviour
         while (NetworkManager.Singleton == null) yield return null;
 
         NetworkManager.Singleton.OnServerStarted += OnServerStarted;
-        NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
 
         Debug.Log("[AutoLoad] Subscribed events");
         Debug.Log($"[AutoLoad] SceneManagementEnabled? {NetworkManager.Singleton.NetworkConfig.EnableSceneManagement}");
@@ -32,9 +30,7 @@ public class AutoLoadScene : MonoBehaviour
     private void OnDisable()
     {
         if (NetworkManager.Singleton == null) return;
-
         NetworkManager.Singleton.OnServerStarted -= OnServerStarted;
-        NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnected;
     }
 
     private void OnServerStarted()
@@ -50,34 +46,20 @@ public class AutoLoadScene : MonoBehaviour
     private void HostFallbackLoad()
     {
         if (!NetworkManager.Singleton.IsServer) return;
-
         if (networkLoadIssued) return;
 
-        Debug.Log("[AutoLoad][SERVER] Fallback: loading MeetingRoom now (host only timing).");
+        // ✅ لو احنا أصلاً في MeetingRoom متعملش أي حاجة
+        if (SceneManager.GetActiveScene().name == SceneName)
+        {
+            networkLoadIssued = true;
+            Debug.Log("[AutoLoad] Already in MeetingRoom. No reload.");
+            return;
+        }
+
         IssueNetworkLoad();
     }
 
-    private void OnClientConnected(ulong clientId)
-    {
-        if (!NetworkManager.Singleton.IsServer) return;
-
-        if (clientId == NetworkManager.Singleton.LocalClientId)
-            return;
-
-        Debug.Log($"[AutoLoad][SERVER] Real client connected (id={clientId}). Forcing scene load for sync...");
-
-        CancelInvoke(nameof(HostFallbackLoad));
-
-        StartCoroutine(LoadAfterShortDelay());
-    }
-
-    private IEnumerator LoadAfterShortDelay()
-    {
-        yield return new WaitForSeconds(afterClientDelay);
-        IssueNetworkLoad(forceEvenIfIssued: true);
-    }
-
-    private void IssueNetworkLoad(bool forceEvenIfIssued = false)
+    private void IssueNetworkLoad()
     {
         if (NetworkManager.Singleton.SceneManager == null)
         {
@@ -85,12 +67,10 @@ public class AutoLoadScene : MonoBehaviour
             return;
         }
 
-  
-        if (networkLoadIssued && !forceEvenIfIssued) return;
-
+        if (networkLoadIssued) return;
         networkLoadIssued = true;
 
-        Debug.Log($"[AutoLoad][SERVER] NetworkSceneManager.LoadScene -> {meetingSceneName}");
-        NetworkManager.Singleton.SceneManager.LoadScene(meetingSceneName, LoadSceneMode.Single);
+        Debug.Log($"[AutoLoad][SERVER] NetworkSceneManager.LoadScene -> {SceneName}");
+        NetworkManager.Singleton.SceneManager.LoadScene(SceneName, LoadSceneMode.Single);
     }
 }

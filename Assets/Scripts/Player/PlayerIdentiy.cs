@@ -1,7 +1,8 @@
-﻿using UnityEngine;
-using Unity.Netcode;
+﻿using System.Collections.Generic;
 using TMPro;
 using Unity.Collections;
+using Unity.Netcode;
+using UnityEngine;
 
 public class PlayerIdentity : NetworkBehaviour
 {
@@ -13,24 +14,46 @@ public class PlayerIdentity : NetworkBehaviour
             NetworkVariableReadPermission.Everyone,
             NetworkVariableWritePermission.Server);
 
+    // ✅ Registry محلي: clientId -> name
+    private static readonly Dictionary<ulong, string> NameByClientId = new();
+
+    public static string GetName(ulong clientId)
+    {
+        if (NameByClientId.TryGetValue(clientId, out var n) && !string.IsNullOrWhiteSpace(n))
+            return n;
+
+        return $"User {clientId}";
+    }
+
     public override void OnNetworkSpawn()
     {
         if (nameText == null)
             nameText = GetComponentInChildren<TMP_Text>(true);
 
-        DisplayName.OnValueChanged += (_, __) => RefreshName();
+        DisplayName.OnValueChanged += OnNameChanged;
 
         RefreshName();
 
-        if (!IsOwner) return;
+        if (IsOwner)
+        {
+            string n = GetLocalDisplayName();
+            SubmitIdentityServerRpc(n);
+        }
+    }
 
-        string n = GetLocalDisplayName();
-        SubmitIdentityServerRpc(n);
+    public override void OnNetworkDespawn()
+    {
+        DisplayName.OnValueChanged -= OnNameChanged;
+        NameByClientId.Remove(OwnerClientId);
+    }
+
+    private void OnNameChanged(FixedString64Bytes oldValue, FixedString64Bytes newValue)
+    {
+        RefreshName();
     }
 
     private string GetLocalDisplayName()
     {
-  
         string n = (GameSessionData.Instance != null) ? GameSessionData.Instance.DisplayName : "";
 
         if (string.IsNullOrWhiteSpace(n))
@@ -45,10 +68,15 @@ public class PlayerIdentity : NetworkBehaviour
 
     private void RefreshName()
     {
-        if (nameText == null) return;
-
         string value = DisplayName.Value.ToString();
-        nameText.text = string.IsNullOrWhiteSpace(value) ? "Player" : value;
+        if (string.IsNullOrWhiteSpace(value)) value = "Player";
+
+        // ✅ حدّثي registry
+        NameByClientId[OwnerClientId] = value;
+
+        // ✅ اللي فوق الراس
+        if (nameText != null)
+            nameText.text = value;
     }
 
     [ServerRpc(RequireOwnership = true)]
