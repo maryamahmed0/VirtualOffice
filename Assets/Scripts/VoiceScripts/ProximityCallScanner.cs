@@ -1,4 +1,5 @@
-﻿using Unity.Netcode;
+﻿using System;
+using Unity.Netcode;
 using UnityEngine;
 
 public class ProximityCallScanner : NetworkBehaviour
@@ -19,6 +20,14 @@ public class ProximityCallScanner : NetworkBehaviour
 
     public NetworkObject NearestTarget => _nearest;
     public bool CanCall => canCall;
+    public ulong NearestClientId => nearestClientId;
+    public float NearestDist => nearestDist;
+
+    public event Action<ulong, NetworkObject> OnTargetChanged;
+    public event Action OnTargetCleared;
+
+    public string NearestName =>
+        (nearestClientId == 0) ? "" : PlayerIdentity.GetName(nearestClientId);
 
     public override void OnNetworkSpawn()
     {
@@ -35,25 +44,34 @@ public class ProximityCallScanner : NetworkBehaviour
             Scan();
         }
 
-        if (Input.GetKeyDown(KeyCode.E))
-        {
-            Debug.Log($"[CALLSCAN] E pressed. canCall={CanCall} target={(NearestTarget ? NearestTarget.OwnerClientId.ToString() : "null")} dist={nearestDist:F2}");
-        }
-
+        // للـ PC فقط (اختياري)
         if (CanCall && Input.GetKeyDown(KeyCode.E))
         {
-            var call = GetComponent<CallController>();
-            if (call == null || NearestTarget == null) return;
-
-            if (call.State != CallController.CallState.Idle) return;
-
-            if (NearestTarget.OwnerClientId == NetworkManager.Singleton.LocalClientId) return;
-
-            Debug.Log("[CALLSCAN] RequestCall -> " + NearestTarget.OwnerClientId);
-            call.RequestCall(NearestTarget.OwnerClientId);
+            TryRequestCall();
         }
     }
 
+    public void TryRequestCall()
+    {
+        var call = GetComponent<CallController>();
+        if (call == null || NearestTarget == null) return;
+
+        if (call.State != CallController.CallState.Idle) return;
+
+        if (NearestTarget.OwnerClientId == NetworkManager.Singleton.LocalClientId) return;
+
+        Debug.Log("[CALLSCAN] RequestCall -> " + NearestTarget.OwnerClientId);
+        call.RequestCall(NearestTarget.OwnerClientId);
+    }
+    public void ForceScanNow()
+    {
+        _nextScanTime = 0f;
+
+        _hadTarget = false;
+        _lastTarget = ulong.MaxValue;
+
+        Scan();
+    }
     private void Scan()
     {
         canCall = false;
@@ -63,9 +81,12 @@ public class ProximityCallScanner : NetworkBehaviour
         if (PlayerRoomState.LocalInstance != null &&
             PlayerRoomState.LocalInstance.CurrentContext != null &&
             PlayerRoomState.LocalInstance.CurrentContext.roomType == RoomType.Meeting)
+        {
+            ClearIfHadTarget();
             return;
+        }
 
-        if (NetworkManager.Singleton == null) return;
+        if (NetworkManager.Singleton == null) { ClearIfHadTarget(); return; }
 
         var me = NetworkObject;
         var myPos = (Vector2)transform.position;
@@ -73,11 +94,8 @@ public class ProximityCallScanner : NetworkBehaviour
         foreach (var no in NetworkManager.Singleton.SpawnManager.SpawnedObjectsList)
         {
             if (no == null || no == me) continue;
-
             if (!no.IsPlayerObject) continue;
-
             if (no.GetComponent<PlayerRoomState>() == null) continue;
-
             if (no.OwnerClientId == NetworkManager.Singleton.LocalClientId) continue;
 
             float d = Vector2.Distance(myPos, (Vector2)no.transform.position);
@@ -95,16 +113,34 @@ public class ProximityCallScanner : NetworkBehaviour
 
             if (!_hadTarget || _lastTarget != nearestClientId)
             {
-                Debug.Log($"[CALLSCAN] Target(Player) = {nearestClientId} name={_nearest.name} dist={nearestDist:F2}");
+                Debug.Log($"[CALLSCAN] Target(Player) = {nearestClientId} name={NearestName} dist={nearestDist:F2}");
                 _hadTarget = true;
                 _lastTarget = nearestClientId;
+
+                OnTargetChanged?.Invoke(nearestClientId, _nearest);
             }
         }
-        else if (_hadTarget)
+        else
+        {
+            ClearIfHadTarget();
+        }
+    }
+
+
+    private void ClearIfHadTarget()
+    {
+        canCall = false;
+        _nearest = null;
+        nearestClientId = 0;
+        nearestDist = float.MaxValue;
+
+        if (_hadTarget)
         {
             Debug.Log("[CALLSCAN] No target (out of range)");
             _hadTarget = false;
             _lastTarget = ulong.MaxValue;
+
+            OnTargetCleared?.Invoke();
         }
     }
 }
