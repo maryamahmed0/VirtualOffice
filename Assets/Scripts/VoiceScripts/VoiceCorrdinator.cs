@@ -3,20 +3,21 @@ using UnityEngine;
 
 public class VoiceCoordinator : MonoBehaviour
 {
-    [Header("Provider (Vivox الآن / WebRTC لاحقاً)")]
     [SerializeField] private MonoBehaviour providerBehaviour;
     private IVoiceProvider provider;
 
-    [Header("Meeting")]
-    [SerializeField] private string meetingRoomId = "meeting_main";
+    [Header("Meeting Auto Join")]
     [SerializeField] private bool autoJoinMeeting = true;
 
     [Header("State (debug)")]
     [SerializeField] private string activeMeetingChannel;
     [SerializeField] private string activePrivateChannel;
-    [SerializeField] private bool inMeetingRoom;
 
     private static VoiceCoordinator _instance;
+
+    private NetRoomState localRoomState;
+    private bool inMeetingRoom;
+    private int voiceOpVersion = 0;
 
     private void Awake()
     {
@@ -32,66 +33,78 @@ public class VoiceCoordinator : MonoBehaviour
 
     private void OnEnable()
     {
-        InvokeRepeating(nameof(TryHookRoomEvents), 0.2f, 0.2f);
+        InvokeRepeating(nameof(TryHookLocalZone), 0.2f, 0.2f);
     }
 
     private void OnDisable()
     {
-        if (PlayerRoomState.LocalInstance != null)
-            PlayerRoomState.LocalInstance.OnLocalRoomChanged -= OnRoomChanged;
+        if (localRoomState != null)
+            localRoomState.CurrentZone.OnValueChanged -= OnZoneChanged;
 
-        CancelInvoke(nameof(TryHookRoomEvents));
+        CancelInvoke(nameof(TryHookLocalZone));
     }
 
-    private void TryHookRoomEvents()
+    private void TryHookLocalZone()
     {
+        // Local player = PlayerRoomState.LocalInstance موجود عندك وبيمثل اللاعب المحلي
         if (PlayerRoomState.LocalInstance == null) return;
 
-        PlayerRoomState.LocalInstance.OnLocalRoomChanged -= OnRoomChanged;
-        PlayerRoomState.LocalInstance.OnLocalRoomChanged += OnRoomChanged;
+        localRoomState = PlayerRoomState.LocalInstance.GetComponentInParent<NetRoomState>();
+        if (localRoomState == null) return;
 
-        CancelInvoke(nameof(TryHookRoomEvents));
-        Debug.Log("[VOICECOORD] Hooked RoomChanged ✅");
+        localRoomState.CurrentZone.OnValueChanged -= OnZoneChanged;
+        localRoomState.CurrentZone.OnValueChanged += OnZoneChanged;
+
+        CancelInvoke(nameof(TryHookLocalZone));
+        Debug.Log("[VOICECOORD] Hooked ZoneChanged ✅");
+
+        // طبّق الحالة الحالية فورًا
+        OnZoneChanged(localRoomState.CurrentZone.Value, localRoomState.CurrentZone.Value);
     }
 
-    private void OnRoomChanged(RoomContext oldRoom, RoomContext newRoom)
+    private void OnZoneChanged(int oldZ, int newZ)
     {
-        if (newRoom == null) return;
+        var zone = localRoomState.GetZone();
+        inMeetingRoom = (zone == NetRoomState.Zone.Meeting);
 
-        inMeetingRoom = (newRoom.roomType == RoomType.Meeting);
+        voiceOpVersion++;
 
         if (inMeetingRoom && autoJoinMeeting)
         {
-            _ = EnsureMeetingVoiceAsync(newRoom);
+            _ = EnsureMeetingVoiceAsync(voiceOpVersion);
         }
         else
         {
+            // لو مش في meeting، اقفل meeting voice (إلا لو في private call)
             if (string.IsNullOrEmpty(activePrivateChannel))
-                _ = LeaveMeetingAsync();
+                _ = LeaveMeetingAsync(voiceOpVersion);
         }
     }
 
-    private async Task EnsureMeetingVoiceAsync(RoomContext meetingCtx)
+    private async Task EnsureMeetingVoiceAsync(int v)
     {
         if (provider == null) return;
         if (!string.IsNullOrEmpty(activePrivateChannel)) return;
 
         string name = ResolveName();
-        string channel = ResolveMeetingChannel(meetingCtx);
+        string channel = ResolveMeetingChannel();
 
         if (activeMeetingChannel == channel) return;
-        activeMeetingChannel = channel;
 
         try
         {
             await provider.EnsureReadyAsync(name);
+            if (v != voiceOpVersion || !inMeetingRoom) return;
 
             await provider.LeaveCurrentAsync();
-            await provider.JoinAsync(channel);
+            if (v != voiceOpVersion || !inMeetingRoom) return;
 
-            // ✅ مهم: افتحي المايك بعد Join (عشان مفيش صوت)
+            await provider.JoinAsync(channel);
+            if (v != voiceOpVersion || !inMeetingRoom) return;
+
             provider.SetMute(false);
 
+            activeMeetingChannel = channel;
             Debug.Log("[VOICECOORD] Meeting voice ON ✅ " + channel);
         }
         catch (System.Exception e)
@@ -100,15 +113,19 @@ public class VoiceCoordinator : MonoBehaviour
         }
     }
 
-    private async Task LeaveMeetingAsync()
+    private async Task LeaveMeetingAsync(int v)
     {
         if (provider == null) return;
-        if (string.IsNullOrEmpty(activeMeetingChannel)) return;
+        if (string.IsNullOrEmpty(activeMeetingChannel)) { await provider.LeaveCurrentAsync(); return; }
+
+        string old = activeMeetingChannel;
 
         try
         {
-            await provider.LeaveAsync(activeMeetingChannel);
-            Debug.Log("[VOICECOORD] Meeting voice OFF ✅ " + activeMeetingChannel);
+            await provider.LeaveAsync(old);
+            if (v != voiceOpVersion) return;
+
+            Debug.Log("[VOICECOORD] Meeting voice OFF ✅ " + old);
         }
         catch (System.Exception e)
         {
@@ -116,9 +133,12 @@ public class VoiceCoordinator : MonoBehaviour
         }
         finally
         {
-            activeMeetingChannel = null;
+            if (activeMeetingChannel == old) activeMeetingChannel = null;
         }
     }
+
+    // ====== Private Call (زي ما كان عندك) ======
+
     public async Task<bool> StartPrivateCallAsync(string privateChannel)
     {
         if (provider == null) return false;
@@ -146,8 +166,9 @@ public class VoiceCoordinator : MonoBehaviour
             Debug.LogError("[VOICECOORD] StartPrivateCall FAILED ❌ " + e);
             activePrivateChannel = null;
 
-            if (inMeetingRoom && autoJoinMeeting && PlayerRoomState.LocalInstance?.CurrentContext != null)
-                await EnsureMeetingVoiceAsync(PlayerRoomState.LocalInstance.CurrentContext);
+            // لو رجعنا meeting
+            if (inMeetingRoom && autoJoinMeeting)
+                await EnsureMeetingVoiceAsync(voiceOpVersion);
 
             return false;
         }
@@ -171,10 +192,8 @@ public class VoiceCoordinator : MonoBehaviour
             Debug.LogError("[VOICECOORD] EndPrivateCall FAILED ❌ " + e);
         }
 
-        if (inMeetingRoom && autoJoinMeeting && PlayerRoomState.LocalInstance?.CurrentContext != null)
-        {
-            await EnsureMeetingVoiceAsync(PlayerRoomState.LocalInstance.CurrentContext);
-        }
+        if (inMeetingRoom && autoJoinMeeting)
+            await EnsureMeetingVoiceAsync(voiceOpVersion);
     }
 
     private string ResolveName()
@@ -185,7 +204,7 @@ public class VoiceCoordinator : MonoBehaviour
         return PlayerPrefs.GetString("PLAYER_NAME", "Player");
     }
 
-    private string ResolveMeetingChannel(RoomContext ctx)
+    private string ResolveMeetingChannel()
     {
         string org = (GameSessionData.Instance != null && !string.IsNullOrWhiteSpace(GameSessionData.Instance.OrgCode))
             ? GameSessionData.Instance.OrgCode

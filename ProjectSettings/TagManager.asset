@@ -12,13 +12,13 @@ TagManager:
   - 
   - Water
   - UI
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
+  - Player_Default
+  - Player_Small
+  - Player_Med
+  - Player_Large
+  - Desk_Small
+  - Desk_Med
+  - Desk_Large
   - 
   - 
   - 
@@ -74,6 +74,9 @@ TagManager:
     locked: 0
   - name: FrontChair
     uniqueID: 807546503
+    locked: 0
+  - name: Door
+    uniqueID: 2989711863
     locked: 0
   - name: Player
     uniqueID: 3196804757

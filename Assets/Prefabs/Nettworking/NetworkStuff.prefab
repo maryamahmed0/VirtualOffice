@@ -13,7 +13,6 @@ GameObject:
   - component: {fileID: 3110733603741032152}
   - component: {fileID: 8958690393916332528}
   - component: {fileID: 8892647673259130936}
-  - component: {fileID: 5363991449032400809}
   - component: {fileID: 7630455046659395491}
   - component: {fileID: 4005594234318499469}
   m_Layer: 0
@@ -127,23 +126,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 818b02e44f49d7f49ba073e90d9d3eca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  meetingSceneName: TheOffice
+  SceneName: TheOffice
   hostFallbackDelay: 1
-  afterClientDelay: 0.25
---- !u!114 &5363991449032400809
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6761646648352596178}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 339987481e86e2a4e88371d73ead6cd3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  meetingSceneName: TheOffice
-  playerPrefab: {fileID: 5527328553145083282, guid: 8a9b1db631187dc4188a072438cf074a, type: 3}
 --- !u!114 &7630455046659395491
 MonoBehaviour:
   m_ObjectHideFlags: 0

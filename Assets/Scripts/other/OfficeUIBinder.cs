@@ -38,6 +38,7 @@ public class OfficeUIBinder : MonoBehaviour
     private PlayerRoomState room;
     private CallController call;
     private bool muted;
+    private NetRoomState netRoom;
 
     private void Awake()
     {
@@ -69,11 +70,11 @@ public class OfficeUIBinder : MonoBehaviour
 
     private void Update()
     {
-        // Hook local player once
         if (room == null && PlayerRoomState.LocalInstance != null)
         {
             room = PlayerRoomState.LocalInstance;
             call = room.GetComponent<CallController>();
+            netRoom = room.GetComponentInParent<NetRoomState>(); // ✅ الجديد
 
             Debug.Log("[UIBINDER] Hooked. roomType=" + room.CurrentRoomType + " hasCall=" + (call != null));
 
@@ -87,11 +88,8 @@ public class OfficeUIBinder : MonoBehaviour
         }
 
         bool inMeeting =
-            room != null &&
-            room.CanProcessRoomTriggers() &&
-            room.CurrentContext != null &&
-            room.CurrentContext.roomType == RoomType.Meeting &&
-            room.CurrentContext.roomId == "meeting_main";
+     netRoom != null &&
+     netRoom.GetZone() == NetRoomState.Zone.Meeting;
 
         if (meetingMicPanel) meetingMicPanel.SetActive(inMeeting);
 
