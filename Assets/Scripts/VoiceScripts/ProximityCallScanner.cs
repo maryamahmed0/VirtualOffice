@@ -18,6 +18,8 @@ public class ProximityCallScanner : NetworkBehaviour
     private ulong _lastTarget = ulong.MaxValue;
     private bool _hadTarget;
 
+    private LocalVisibilityFilter vis;
+
     public NetworkObject NearestTarget => _nearest;
     public bool CanCall => canCall;
     public ulong NearestClientId => nearestClientId;
@@ -33,6 +35,10 @@ public class ProximityCallScanner : NetworkBehaviour
     {
         if (!IsOwner) { enabled = false; return; }
         enabled = true;
+
+        // ✅ امسك الـ visibility filter مرة واحدة
+        vis = FindFirstObjectByType<LocalVisibilityFilter>(FindObjectsInactive.Exclude);
+
         Debug.Log("[CALLSCAN] Local scanner started ✅ owner=" + OwnerClientId);
     }
 
@@ -63,21 +69,22 @@ public class ProximityCallScanner : NetworkBehaviour
         Debug.Log("[CALLSCAN] RequestCall -> " + NearestTarget.OwnerClientId);
         call.RequestCall(NearestTarget.OwnerClientId);
     }
+
     public void ForceScanNow()
     {
         _nextScanTime = 0f;
-
         _hadTarget = false;
         _lastTarget = ulong.MaxValue;
-
         Scan();
     }
+
     private void Scan()
     {
         canCall = false;
         _nearest = null;
         nearestDist = float.MaxValue;
 
+        // ✅ لو في Meeting، ممنوع private calls
         if (PlayerRoomState.LocalInstance != null &&
             PlayerRoomState.LocalInstance.CurrentContext != null &&
             PlayerRoomState.LocalInstance.CurrentContext.roomType == RoomType.Meeting)
@@ -88,6 +95,10 @@ public class ProximityCallScanner : NetworkBehaviour
 
         if (NetworkManager.Singleton == null) { ClearIfHadTarget(); return; }
 
+        // لو vis اتعمل Destroy لأي سبب، رجّعه
+        if (vis == null)
+            vis = FindFirstObjectByType<LocalVisibilityFilter>(FindObjectsInactive.Exclude);
+
         var me = NetworkObject;
         var myPos = (Vector2)transform.position;
 
@@ -97,6 +108,10 @@ public class ProximityCallScanner : NetworkBehaviour
             if (!no.IsPlayerObject) continue;
             if (no.GetComponent<PlayerRoomState>() == null) continue;
             if (no.OwnerClientId == NetworkManager.Singleton.LocalClientId) continue;
+
+            // ✅ فلترة: ما تسكانش على حد "مش ظاهر" حسب TeamRoom rules
+            if (vis != null && !vis.IsVisibleToLocal(no.gameObject))
+                continue;
 
             float d = Vector2.Distance(myPos, (Vector2)no.transform.position);
             if (d <= callRange && d < nearestDist)
@@ -125,7 +140,6 @@ public class ProximityCallScanner : NetworkBehaviour
             ClearIfHadTarget();
         }
     }
-
 
     private void ClearIfHadTarget()
     {
