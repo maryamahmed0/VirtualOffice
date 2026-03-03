@@ -1,4 +1,4 @@
-using Unity.Netcode;
+﻿using Unity.Netcode;
 using UnityEngine;
 
 public class NetRoomState : NetworkBehaviour
@@ -22,5 +22,7 @@ public class NetRoomState : NetworkBehaviour
 
         Debug.Log($"[ZONE][SERVER] client={OwnerClientId} zone {GetZone()} -> {z}");
         CurrentZone.Value = (int)z;
+
+        TeamVisibilitySystem.Instance?.RequestRebuild("ZoneChanged");
     }
 }
