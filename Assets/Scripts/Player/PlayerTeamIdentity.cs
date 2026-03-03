@@ -41,5 +41,7 @@ public class PlayerTeamIdentity : NetworkBehaviour
         LayoutIndex.Value = idx;
 
         Debug.Log($"[TEAM] client {OwnerClientId} teamHash={teamHash} size={TeamSize.Value} layout={idx}");
+
+        TeamVisibilitySystem.Instance?.RequestRebuild("TeamSet");
     }
 }
