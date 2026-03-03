@@ -100,4 +100,26 @@ public class LocalVisibilityFilter : MonoBehaviour
         foreach (var c in root.GetComponentsInChildren<Canvas>(true))
             c.enabled = on;
     }
+    public bool IsVisibleToLocal(GameObject targetPlayerRoot)
+    {
+        if (targetPlayerRoot == null) return false;
+
+        var localR = localRoom;
+        var localT = localTeam;
+        if (localR == null || localT == null) return true; // fallback
+
+        var otherR = targetPlayerRoot.GetComponentInParent<NetRoomState>();
+        var otherT = targetPlayerRoot.GetComponentInParent<PlayerTeamIdentity>();
+        if (otherR == null || otherT == null) return true;
+
+        // ما تخبيش نفسك
+        if (NetworkManager.Singleton != null)
+        {
+            var no = targetPlayerRoot.GetComponentInParent<NetworkObject>();
+            if (no != null && no.OwnerClientId == NetworkManager.Singleton.LocalClientId)
+                return true;
+        }
+
+        return ShouldSee(localR, localT, otherR, otherT);
+    }
 }
