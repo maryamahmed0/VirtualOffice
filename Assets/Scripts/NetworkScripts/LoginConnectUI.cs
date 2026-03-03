@@ -1,4 +1,4 @@
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
 using Unity.Netcode;
 using System.Text;
@@ -8,49 +8,76 @@ public class LobbyConnectUI : MonoBehaviour
     [Header("UI")]
     [SerializeField] private TMP_InputField nameInput;
     [SerializeField] private TMP_InputField orgInput;
-    [SerializeField] private TMP_InputField joinCodeInput; 
+    [SerializeField] private TMP_InputField joinCodeInput;
     [SerializeField] private TMP_Text statusText;
     [SerializeField] private TMP_Text errorText;
-    [SerializeField] private TMP_Text joinCodeText; 
+    [SerializeField] private TMP_Text joinCodeText;
+
+    [Header("Team (NEW)")]
+    [SerializeField] private TMP_InputField teamIdInput;
+    [SerializeField] private TMP_InputField teamSizeInput;
 
     private RelayConnector relay;
     private bool busy;
+    private static string lastPayload;
 
     private void Awake()
     {
         relay = FindFirstObjectByType<RelayConnector>();
+
+        // prefill (اختياري)
+        if (teamIdInput != null) teamIdInput.text = PlayerPrefs.GetString("TEAM_ID", "TECH");
+        if (teamSizeInput != null) teamSizeInput.text = PlayerPrefs.GetInt("TEAM_SIZE", 8).ToString();
     }
 
-
-    void ApplyConnectionPayload(string playerName, string org)
+    // payload: name|org|teamId|teamSize
+    private void ApplyConnectionPayload(string playerName, string org, string teamId, int teamSize)
     {
         var nm = NetworkManager.Singleton;
-        var payload = $"{playerName}|{org}";
-        nm.NetworkConfig.ConnectionData = Encoding.UTF8.GetBytes(payload);
-        Debug.Log($"[PAYLOAD] set >>>{payload}<<< bytes={nm.NetworkConfig.ConnectionData.Length}");
+        var payload = $"{playerName}|{org}|{teamId}|{teamSize}";
+        byte[] bytes = Encoding.UTF8.GetBytes(payload);
+        nm.NetworkConfig.ConnectionData = bytes;
+
+        lastPayload = payload;
+        Debug.Log($"[PAYLOAD] set >>>{payload}<<< bytes={bytes.Length}");
     }
 
     private static string SanitizeJoinCode(string code)
     {
         if (string.IsNullOrWhiteSpace(code)) return "";
 
-
-        System.Text.StringBuilder sb = new System.Text.StringBuilder(code.Length);
+        StringBuilder sb = new StringBuilder(code.Length);
         foreach (char c in code)
-        {
             if (char.IsLetterOrDigit(c))
                 sb.Append(char.ToUpperInvariant(c));
-        }
 
         string cleaned = sb.ToString();
-
         if (cleaned.Length > 6)
             cleaned = cleaned.Substring(cleaned.Length - 6, 6);
 
         return cleaned;
     }
 
- 
+    private static string SanitizeTeamId(string team)
+    {
+        if (string.IsNullOrWhiteSpace(team)) return "TECH";
+        team = team.Trim().ToUpperInvariant();
+
+        var sb = new StringBuilder(team.Length);
+        foreach (var c in team)
+            if (char.IsLetterOrDigit(c) || c == '_')
+                sb.Append(c);
+
+        return sb.Length == 0 ? "TECH" : sb.ToString();
+    }
+
+    private static int SanitizeTeamSize(string s)
+    {
+        if (int.TryParse(s, out int v))
+            return Mathf.Clamp(v, 1, 50);
+        return 8;
+    }
+
     public async void OnEnterClicked()
     {
         if (busy) return;
@@ -65,12 +92,20 @@ public class LobbyConnectUI : MonoBehaviour
         errorText.text = "";
         statusText.text = "Connecting...";
 
-        string displayName = nameInput.text.Trim();
-        string org = orgInput.text.Trim().ToUpperInvariant();
+        string displayName = nameInput != null ? nameInput.text.Trim() : "";
+        string org = orgInput != null ? orgInput.text.Trim().ToUpperInvariant() : "";
 
         string joinCodeRaw = joinCodeInput != null ? joinCodeInput.text : "";
         string joinCode = SanitizeJoinCode(joinCodeRaw);
 
+        // TEAM
+        string teamIdRaw = teamIdInput != null ? teamIdInput.text : "";
+        string teamSizeRaw = teamSizeInput != null ? teamSizeInput.text : "8";
+
+        string teamId = SanitizeTeamId(teamIdRaw);
+        int teamSize = SanitizeTeamSize(teamSizeRaw);
+
+        // Validate basic fields
         if (string.IsNullOrWhiteSpace(displayName))
         {
             errorText.text = "Please enter a name.";
@@ -87,12 +122,19 @@ public class LobbyConnectUI : MonoBehaviour
             return;
         }
 
-
-        if (GameSessionData.Instance != null)
-            GameSessionData.Instance.SetUser(displayName, org);
-
+        // Save locally
         PlayerPrefs.SetString("PLAYER_NAME", displayName);
         PlayerPrefs.SetString("ORG_ID", org);
+        PlayerPrefs.SetString("TEAM_ID", teamId);
+        PlayerPrefs.SetInt("TEAM_SIZE", teamSize);
+        PlayerPrefs.Save();
+
+        // Save to session data
+        if (GameSessionData.Instance != null)
+        {
+            GameSessionData.Instance.SetUser(displayName, org);
+            GameSessionData.Instance.SetTeam(teamId, teamSize);
+        }
 
         try
         {
@@ -120,7 +162,9 @@ public class LobbyConnectUI : MonoBehaviour
                 return;
             }
 
-            ApplyConnectionPayload(displayName, org);
+            // apply payload BEFORE starting host/client
+            ApplyConnectionPayload(displayName, org, teamId, teamSize);
+            Debug.Log("[PAYLOAD] FINAL >>>" + lastPayload + "<<<");
 
             if (string.IsNullOrEmpty(joinCode))
             {
@@ -128,15 +172,14 @@ public class LobbyConnectUI : MonoBehaviour
 
                 // Host
                 string code = await relay.CreateRoomAndHost(displayName, org);
+
                 PlayerPrefs.SetString("JOIN_CODE", code);
                 PlayerPrefs.Save();
-
 
                 GameSessionData.Instance?.SetConnectionInfo(true, code);
 
                 statusText.text = "Room created. Share join code:";
                 if (joinCodeText != null) joinCodeText.text = $"Join Code: {code}";
-
                 if (joinCodeInput != null) joinCodeInput.text = code;
 
                 GUIUtility.systemCopyBuffer = code;
@@ -151,16 +194,15 @@ public class LobbyConnectUI : MonoBehaviour
                     return;
                 }
 
-                //Client
                 statusText.text = "Joining room...";
                 GameSessionData.Instance?.SetConnectionInfo(false, joinCode);
 
                 Debug.Log($"[UI] Joining with EXACT >>>{joinCode}<<< len={joinCode.Length}");
 
                 await relay.JoinRoomAndClient(joinCode, displayName, org);
+
                 PlayerPrefs.SetString("JOIN_CODE", joinCode);
                 PlayerPrefs.Save();
-
 
                 statusText.text = "Joined!";
             }

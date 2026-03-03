@@ -25,6 +25,8 @@ public class OfficeSpawnManager : MonoBehaviour
         free.Clear();
         for (int i = 0; i < spawnPoints.Length; i++)
             free.Add(i);
+
+        Debug.Log($"[OFFICE SPAWN] SpawnPoints={spawnPoints.Length}");
     }
 
     private void OnEnable()
@@ -34,12 +36,13 @@ public class OfficeSpawnManager : MonoBehaviour
 
     private IEnumerator Hook()
     {
-        while (NetworkManager.Singleton == null) yield return null;
+        while (NetworkManager.Singleton == null)
+            yield return null;
 
         NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
         NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
 
-        // ✅ لو الهوست موجود بالفعل (start host)، خليه ياخد spawn مرة واحدة
+        // ✅ لو الهوست موجود بالفعل (StartHost اتعمل)، اديله spawn مرة واحدة
         if (NetworkManager.Singleton.IsServer && NetworkManager.Singleton.IsHost)
         {
             OnClientConnected(NetworkManager.Singleton.LocalClientId);
@@ -55,7 +58,9 @@ public class OfficeSpawnManager : MonoBehaviour
 
     private void OnClientConnected(ulong clientId)
     {
-        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer) return;
+        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer)
+            return;
+
         StartCoroutine(AssignSpawnWhenReady(clientId));
     }
 
@@ -64,8 +69,13 @@ public class OfficeSpawnManager : MonoBehaviour
         // استني شوية لحد ما PlayerObject يبقى اتعمله spawn
         yield return null;
         yield return null;
+        yield return null;
+        yield return null;
 
         if (spawnedOnce.Contains(clientId))
+            yield break;
+
+        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer)
             yield break;
 
         if (!NetworkManager.Singleton.ConnectedClients.TryGetValue(clientId, out var client))
@@ -77,18 +87,16 @@ public class OfficeSpawnManager : MonoBehaviour
 
         Vector3 pos = PickSpawnPos(clientId);
 
-        // ✅ حرّكيه على السيرفر بس (ده اللي هيعمل sync للكل)
+        // ✅ صفري الحركة
         var rb = playerObj.GetComponent<Rigidbody2D>();
         if (rb != null)
         {
             rb.velocity = Vector2.zero;
             rb.angularVelocity = 0f;
-            rb.position = (Vector2)pos;
         }
-        else
-        {
-            playerObj.transform.position = pos;
-        }
+
+        // ✅ انقل transform (أوضح من rb.position مع netcode)
+        playerObj.transform.position = pos;
 
         spawnedOnce.Add(clientId);
         Debug.Log($"[OFFICE SPAWN] client {clientId} -> {pos}");

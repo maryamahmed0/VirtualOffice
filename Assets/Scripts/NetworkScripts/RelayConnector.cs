@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using UnityEngine;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
@@ -14,6 +14,7 @@ public class RelayConnector : MonoBehaviour
     public string CurrentJoinCode { get; private set; }
 
     private static string RelayProtocol => "wss";
+
     private void Awake()
     {
         if (transport == null)
@@ -42,15 +43,24 @@ public class RelayConnector : MonoBehaviour
         }
     }
 
-    private static void SetConnectionPayload(string playerName, string org)
+    // ✅ Optional: تأكيد إن payload معمول قبل StartHost/StartClient
+    private static void AssertPayloadAlreadySet()
     {
         var nm = NetworkManager.Singleton;
         if (nm == null) return;
 
-        string payload = $"{playerName}|{org}";
-        nm.NetworkConfig.ConnectionData = Encoding.UTF8.GetBytes(payload);
+        string existing = "";
+        try
+        {
+            if (nm.NetworkConfig.ConnectionData != null && nm.NetworkConfig.ConnectionData.Length > 0)
+                existing = Encoding.UTF8.GetString(nm.NetworkConfig.ConnectionData);
+        }
+        catch { existing = ""; }
 
-        Debug.Log($"[PAYLOAD] set >>>{payload}<<< bytes={nm.NetworkConfig.ConnectionData.Length}");
+        if (string.IsNullOrEmpty(existing))
+            Debug.LogWarning("[PAYLOAD] ConnectionData is EMPTY. Expected it to be set by LobbyConnectUI before starting host/client.");
+        else
+            Debug.Log($"[PAYLOAD] Using existing >>>{existing}<<<");
     }
 
     public async Task<string> CreateRoomAndHost(string playerName, string org, int maxConnections = 4)
@@ -74,7 +84,8 @@ public class RelayConnector : MonoBehaviour
 
         transport.SetRelayServerData(new RelayServerData(alloc, RelayProtocol));
 
-        SetConnectionPayload(playerName, org);
+        // ❌ متكتبش payload هنا
+        AssertPayloadAlreadySet();
 
         bool ok = NetworkManager.Singleton.StartHost();
         Debug.Log($"[Relay][HOST] StartHost() = {ok}");
@@ -100,7 +111,8 @@ public class RelayConnector : MonoBehaviour
 
         transport.SetRelayServerData(new RelayServerData(joinAlloc, RelayProtocol));
 
-        SetConnectionPayload(playerName, org);
+        // ❌ متكتبش payload هنا
+        AssertPayloadAlreadySet();
 
         bool ok = NetworkManager.Singleton.StartClient();
         Debug.Log($"[Relay][CLIENT] StartClient() = {ok}");

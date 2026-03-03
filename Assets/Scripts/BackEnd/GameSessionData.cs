@@ -7,6 +7,9 @@ public class GameSessionData : MonoBehaviour
     public string DisplayName { get; private set; }
     public string OrgCode { get; private set; }
 
+    public string TeamId { get; private set; } = "TECH";
+    public int TeamSize { get; private set; } = 8;
+
     public string LastJoinCode { get; private set; } = "";
     public bool IsHost { get; private set; }
 
@@ -20,12 +23,22 @@ public class GameSessionData : MonoBehaviour
 
         Instance = this;
         DontDestroyOnLoad(gameObject);
+
+        // fallback من PlayerPrefs لو موجودة
+        TeamId = PlayerPrefs.GetString("TEAM_ID", "TECH").ToUpperInvariant();
+        TeamSize = PlayerPrefs.GetInt("TEAM_SIZE", 8);
     }
 
     public void SetUser(string displayName, string orgCode)
     {
         DisplayName = displayName;
         OrgCode = orgCode;
+    }
+
+    public void SetTeam(string teamId, int teamSize)
+    {
+        TeamId = string.IsNullOrWhiteSpace(teamId) ? "TECH" : teamId.Trim().ToUpperInvariant();
+        TeamSize = Mathf.Clamp(teamSize, 1, 50);
     }
 
     public void SetConnectionInfo(bool isHost, string joinCode)
