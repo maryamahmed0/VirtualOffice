@@ -501,6 +501,7 @@ GameObject:
   - component: {fileID: 6522821036467603369}
   - component: {fileID: 2037576073077061642}
   - component: {fileID: 7706694500703529717}
+  - component: {fileID: 5112140736379697864}
   m_Layer: 6
   m_Name: Player
   m_TagString: Player
@@ -599,7 +600,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 1065756672
+  GlobalObjectIdHash: 2164355037
   InScenePlacedSourceGlobalObjectIdHash: 0
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
@@ -924,6 +925,18 @@ MonoBehaviour:
   team: {fileID: 2037576073077061642}
   bodyCollider: {fileID: 534528554095002899}
   bodyRigidbody: {fileID: 0}
+--- !u!114 &5112140736379697864
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8575621701050902749}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ae63f6de0aa89764ebdbc06cd88e9581, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &8669705250435799492
 GameObject:
   m_ObjectHideFlags: 0

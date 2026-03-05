@@ -3,11 +3,11 @@
 [RequireComponent(typeof(Collider2D))]
 public class RoomZoneTrigger : MonoBehaviour
 {
-    [SerializeField] private RoomContext roomContext;
+    [SerializeField] private RoomMarker roomContext;
 
     private void Reset()
     {
-        roomContext = GetComponent<RoomContext>();
+        roomContext = GetComponent<RoomMarker>();
 
         var col = GetComponent<Collider2D>();
         if (col != null) col.isTrigger = true;
@@ -16,7 +16,7 @@ public class RoomZoneTrigger : MonoBehaviour
     private void Awake()
     {
         if (roomContext == null)
-            roomContext = GetComponent<RoomContext>();
+            roomContext = GetComponent<RoomMarker>();
 
         if (roomContext == null)
             Debug.LogError("[ROOM] RoomZoneTrigger missing RoomContext on " + gameObject.name);

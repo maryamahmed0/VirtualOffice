@@ -40,6 +40,9 @@ public class VoiceManager : MonoBehaviour
     {
         try
         {
+            await UGSBootstrap.EnsureSignedIn();
+            Debug.Log("[VOICE] UGS signed-in OK, starting Vivox init...");
+
             Debug.Log("[VOICE] Initialize...");
             await VivoxService.Instance.InitializeAsync();
 
@@ -57,7 +60,7 @@ public class VoiceManager : MonoBehaviour
                 }
                 catch (System.Exception e)
                 {
-                    Debug.LogWarning($"[VOICE] Login attempt {attempt} failed: {e.Message}");
+                    Debug.LogWarning($"[VOICE] Login attempt {attempt} failed:\n{e}");
 
                     await TryLogoutReset(); // ✅ reset مهم بعد timeout/invalid state
 

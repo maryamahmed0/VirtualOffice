@@ -88,7 +88,12 @@ public class LobbyConnectUI : MonoBehaviour
             WebVoiceGate.MarkUserGesture();
             Debug.Log("[WEB] Enter clicked - gesture sent");
         }
-
+        // Android mic permission (popup)
+        if (Application.platform == RuntimePlatform.Android)
+        {
+            if (!AndroidMicPermissionGate.HasMicPermission())
+                AndroidMicPermissionGate.RequestMicPermission();
+        }
         errorText.text = "";
         statusText.text = "Connecting...";
 
@@ -170,6 +175,11 @@ public class LobbyConnectUI : MonoBehaviour
             {
                 statusText.text = "Creating room...";
 
+                int teamIdHash = Animator.StringToHash(teamId);
+                int layoutIndex = teamSize <= 8 ? 0 : (teamSize <= 12 ? 1 : 2);
+
+                // مهم: خزني الداتا في GlobalRoomContext
+                GlobalRoomContext.Instance.SetLobbyData(displayName, org, joinCode, teamIdHash, teamSize, layoutIndex);
                 // Host
                 string code = await relay.CreateRoomAndHost(displayName, org);
 
@@ -199,6 +209,11 @@ public class LobbyConnectUI : MonoBehaviour
 
                 Debug.Log($"[UI] Joining with EXACT >>>{joinCode}<<< len={joinCode.Length}");
 
+                int teamIdHash = Animator.StringToHash(teamId);
+                int layoutIndex = teamSize <= 8 ? 0 : (teamSize <= 12 ? 1 : 2);
+
+                // مهم: خزني الداتا في GlobalRoomContext
+                GlobalRoomContext.Instance.SetLobbyData(displayName, org, joinCode, teamIdHash, teamSize, layoutIndex);
                 await relay.JoinRoomAndClient(joinCode, displayName, org);
 
                 PlayerPrefs.SetString("JOIN_CODE", joinCode);
