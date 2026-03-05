@@ -16,7 +16,6 @@ public class OfficeSpawnManager : MonoBehaviour
     {
         if (spawnPoints == null || spawnPoints.Length == 0)
         {
-            // كل الـ children spawn points
             spawnPoints = GetComponentsInChildren<Transform>(true)
                 .Where(t => t != transform)
                 .ToArray();
@@ -42,7 +41,6 @@ public class OfficeSpawnManager : MonoBehaviour
         NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
         NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
 
-        // ✅ لو الهوست موجود بالفعل (StartHost اتعمل)، اديله spawn مرة واحدة
         if (NetworkManager.Singleton.IsServer && NetworkManager.Singleton.IsHost)
         {
             OnClientConnected(NetworkManager.Singleton.LocalClientId);
@@ -66,7 +64,6 @@ public class OfficeSpawnManager : MonoBehaviour
 
     private IEnumerator AssignSpawnWhenReady(ulong clientId)
     {
-        // استني شوية لحد ما PlayerObject يبقى اتعمله spawn
         yield return null;
         yield return null;
         yield return null;
@@ -87,7 +84,6 @@ public class OfficeSpawnManager : MonoBehaviour
 
         Vector3 pos = PickSpawnPos(clientId);
 
-        // ✅ صفري الحركة
         var rb = playerObj.GetComponent<Rigidbody2D>();
         if (rb != null)
         {
@@ -95,7 +91,6 @@ public class OfficeSpawnManager : MonoBehaviour
             rb.angularVelocity = 0f;
         }
 
-        // ✅ انقل transform (أوضح من rb.position مع netcode)
         playerObj.transform.position = pos;
 
         spawnedOnce.Add(clientId);

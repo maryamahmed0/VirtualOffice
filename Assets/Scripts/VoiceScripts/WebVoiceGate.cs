@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 public static class WebVoiceGate
 {
     public static bool HasUserGesture { get; private set; }
-    public static bool VoiceStarted { get; set; } // ✅ جديد
+    public static bool VoiceStarted { get; set; } 
 
 #if UNITY_WEBGL && !UNITY_EDITOR
     [DllImport("__Internal")] private static extern void WebGL_ResumeAudioContext();

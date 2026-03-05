@@ -47,8 +47,6 @@ public class AutoLoadScene : MonoBehaviour
     {
         if (!NetworkManager.Singleton.IsServer) return;
         if (networkLoadIssued) return;
-
-        // ✅ لو احنا أصلاً في MeetingRoom متعملش أي حاجة
         if (SceneManager.GetActiveScene().name == SceneName)
         {
             networkLoadIssued = true;

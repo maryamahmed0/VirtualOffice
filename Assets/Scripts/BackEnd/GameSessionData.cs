@@ -24,7 +24,7 @@ public class GameSessionData : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
 
-        // fallback من PlayerPrefs لو موجودة
+        
         TeamId = PlayerPrefs.GetString("TEAM_ID", "TECH").ToUpperInvariant();
         TeamSize = PlayerPrefs.GetInt("TEAM_SIZE", 8);
     }

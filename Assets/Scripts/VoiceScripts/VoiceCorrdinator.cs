@@ -46,7 +46,7 @@ public class VoiceCoordinator : MonoBehaviour
 
     private void TryHookLocalZone()
     {
-        // Local player = PlayerRoomState.LocalInstance موجود عندك وبيمثل اللاعب المحلي
+     
         if (PlayerRoomState.LocalInstance == null) return;
 
         localRoomState = PlayerRoomState.LocalInstance.GetComponentInParent<NetRoomState>();
@@ -58,7 +58,6 @@ public class VoiceCoordinator : MonoBehaviour
         CancelInvoke(nameof(TryHookLocalZone));
         Debug.Log("[VOICECOORD] Hooked ZoneChanged ✅");
 
-        // طبّق الحالة الحالية فورًا
         OnZoneChanged(localRoomState.CurrentZone.Value, localRoomState.CurrentZone.Value);
     }
 
@@ -75,7 +74,7 @@ public class VoiceCoordinator : MonoBehaviour
         }
         else
         {
-            // لو مش في meeting، اقفل meeting voice (إلا لو في private call)
+
             if (string.IsNullOrEmpty(activePrivateChannel))
                 _ = LeaveMeetingAsync(voiceOpVersion);
         }
@@ -97,7 +96,7 @@ public class VoiceCoordinator : MonoBehaviour
             {
                 AndroidMicPermissionGate.RequestMicPermission();
                 Debug.LogWarning("[VOICECOORD] Requested mic permission. Waiting for user...");
-                return; // نوقف المحاولة دلوقتي
+                return; 
             }
         }
 
@@ -147,7 +146,7 @@ public class VoiceCoordinator : MonoBehaviour
         }
     }
 
-    // ====== Private Call (زي ما كان عندك) ======
+    // ====== Private Call ======
 
     public async Task<bool> StartPrivateCallAsync(string privateChannel)
     {
@@ -186,7 +185,7 @@ public class VoiceCoordinator : MonoBehaviour
             Debug.LogError("[VOICECOORD] StartPrivateCall FAILED ❌ " + e);
             activePrivateChannel = null;
 
-            // لو رجعنا meeting
+     
             if (inMeetingRoom && autoJoinMeeting)
                 await EnsureMeetingVoiceAsync(voiceOpVersion);
 

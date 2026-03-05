@@ -3,7 +3,7 @@ using UnityEngine;
 
 public static class VoiceChannelUtil
 {
-    // Vivox channel names لازم تكون clean: حروف/أرقام/underscore غالبًا
+   
     public static string Build(string org, string joinCode)
     {
         org = Sanitize(org);

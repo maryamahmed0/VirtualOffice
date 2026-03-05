@@ -14,7 +14,6 @@ public class PlayerIdentity : NetworkBehaviour
             NetworkVariableReadPermission.Everyone,
             NetworkVariableWritePermission.Server);
 
-    // ✅ Registry محلي: clientId -> name
     private static readonly Dictionary<ulong, string> NameByClientId = new();
 
     public static string GetName(ulong clientId)
@@ -71,10 +70,9 @@ public class PlayerIdentity : NetworkBehaviour
         string value = DisplayName.Value.ToString();
         if (string.IsNullOrWhiteSpace(value)) value = "Player";
 
-        // ✅ حدّثي registry
         NameByClientId[OwnerClientId] = value;
 
-        // ✅ اللي فوق الراس
+ 
         if (nameText != null)
             nameText.text = value;
     }
