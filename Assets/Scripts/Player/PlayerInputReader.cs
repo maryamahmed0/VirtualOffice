@@ -7,31 +7,50 @@ public class PlayerInputReader : NetworkBehaviour
     [SerializeField] private InputActionReference moveAction;
 
     public Vector2 Move { get; private set; }
+    public bool UseMobileOverride { get; private set; }
+    private Vector2 mobileMove;
 
     public override void OnNetworkSpawn()
     {
         if (!IsOwner) return;
 
+        if (Application.isMobilePlatform && Application.platform != RuntimePlatform.WebGLPlayer)
+            return;
 
         if (moveAction == null || moveAction.action == null) return;
 
         moveAction.action.Enable();
-      
-
         moveAction.action.performed += OnMove;
         moveAction.action.canceled += OnMove;
     }
 
     private void OnMove(InputAction.CallbackContext ctx)
     {
+        if (UseMobileOverride) return; 
         Move = ctx.ReadValue<Vector2>();
-       
+    }
+    public void SetMoveFromUI(Vector2 v)
+    {
+        UseMobileOverride = true;
+        mobileMove = v;
+        Move = v;
     }
 
+    public void ClearMobileOverride()
+    {
+        UseMobileOverride = false;
+        mobileMove = Vector2.zero;
+        Move = Vector2.zero;
+    }
 
     public override void OnNetworkDespawn()
     {
-        if (!IsOwner || moveAction?.action == null) return;
+        if (!IsOwner) return;
+
+        if (Application.isMobilePlatform && Application.platform != RuntimePlatform.WebGLPlayer)
+            return;
+
+        if (moveAction?.action == null) return;
 
         moveAction.action.performed -= OnMove;
         moveAction.action.canceled -= OnMove;

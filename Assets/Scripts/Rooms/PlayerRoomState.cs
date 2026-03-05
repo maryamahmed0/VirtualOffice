@@ -11,7 +11,7 @@ public class PlayerRoomState : NetworkBehaviour
     [SerializeField] private string currentTeamId;
 
     [Header("Fallback")]
-    [SerializeField] private RoomContext defaultFallbackRoom;
+    [SerializeField] private RoomMarker defaultFallbackRoom;
 
     [Header("Anti-spam")]
     [SerializeField] private float roomSwitchCooldown = 0.35f;
@@ -27,11 +27,11 @@ public class PlayerRoomState : NetworkBehaviour
     public string CurrentRoomId => currentRoomId;
     public RoomType CurrentRoomType => currentRoomType;
     public string CurrentTeamId => currentTeamId;
-    public RoomContext CurrentContext => _currentContext;
+    public RoomMarker CurrentContext => _currentContext;
 
-    public System.Action<RoomContext, RoomContext> OnLocalRoomChanged;
+    public System.Action<RoomMarker, RoomMarker> OnLocalRoomChanged;
 
-    private RoomContext _currentContext;
+    private RoomMarker _currentContext;
     private float _nextAllowedSwitchTime;
 
     private void Awake()
@@ -52,7 +52,7 @@ public class PlayerRoomState : NetworkBehaviour
         if (autoFindFallback && defaultFallbackRoom == null)
         {
             var go = GameObject.FindWithTag(fallbackTag);
-            if (go != null) defaultFallbackRoom = go.GetComponent<RoomContext>();
+            if (go != null) defaultFallbackRoom = go.GetComponent<RoomMarker>();
             Debug.Log("[ROOM] Fallback found = " + (defaultFallbackRoom ? defaultFallbackRoom.GetDebugName() : "NULL"));
         }
 
@@ -75,7 +75,7 @@ public class PlayerRoomState : NetworkBehaviour
 
     public bool CanProcessRoomTriggers() => Time.time >= _ignoreUntil;
 
-    public void EnterRoom(RoomContext ctx)
+    public void EnterRoom(RoomMarker ctx)
     {
         if (!IsOwner || ctx == null) return;
 
@@ -94,7 +94,7 @@ public class PlayerRoomState : NetworkBehaviour
         OnLocalRoomChanged?.Invoke(old, _currentContext);
     }
 
-    public void ExitRoom(RoomContext ctx)
+    public void ExitRoom(RoomMarker ctx)
     {
         if (!IsOwner || ctx == null) return;
         if (!CanProcessRoomTriggers()) return;
@@ -106,7 +106,7 @@ public class PlayerRoomState : NetworkBehaviour
         if (defaultFallbackRoom == null && autoFindFallback)
         {
             var go = GameObject.FindWithTag(fallbackTag);
-            if (go != null) defaultFallbackRoom = go.GetComponent<RoomContext>();
+            if (go != null) defaultFallbackRoom = go.GetComponent<RoomMarker>();
             Debug.Log("[ROOM] Fallback re-check = " + (defaultFallbackRoom ? defaultFallbackRoom.GetDebugName() : "NULL"));
         }
 
@@ -126,7 +126,7 @@ public class PlayerRoomState : NetworkBehaviour
         ApplyRoomData(_currentContext);
     }
 
-    private void ForceSetRoom(RoomContext ctx)
+    private void ForceSetRoom(RoomMarker ctx)
     {
         var old = _currentContext;
         _currentContext = ctx;
@@ -136,7 +136,7 @@ public class PlayerRoomState : NetworkBehaviour
         OnLocalRoomChanged?.Invoke(old, _currentContext);
     }
 
-    private void ApplyRoomData(RoomContext ctx)
+    private void ApplyRoomData(RoomMarker ctx)
     {
         if (ctx == null)
         {

@@ -23,6 +23,10 @@ public class NetRoomState : NetworkBehaviour
         Debug.Log($"[ZONE][SERVER] client={OwnerClientId} zone {GetZone()} -> {z}");
         CurrentZone.Value = (int)z;
 
-        TeamVisibilitySystem.Instance?.RequestRebuild("ZoneChanged");
+        // ✅ تحديث Presence عشان People UI
+        PresenceService.Instance?.ServerUpdateZoneForClient(OwnerClientId, (int)z);
+
+        // ✅ لو عندك LocalVisibilityFilter refresh event (اختياري)
+        // LocalVisibilityEvents.RaiseRefresh();
     }
 }

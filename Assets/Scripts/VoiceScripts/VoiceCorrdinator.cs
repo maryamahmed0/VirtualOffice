@@ -91,6 +91,16 @@ public class VoiceCoordinator : MonoBehaviour
 
         if (activeMeetingChannel == channel) return;
 
+        if (Application.platform == RuntimePlatform.Android)
+        {
+            if (!AndroidMicPermissionGate.HasMicPermission())
+            {
+                AndroidMicPermissionGate.RequestMicPermission();
+                Debug.LogWarning("[VOICECOORD] Requested mic permission. Waiting for user...");
+                return; // نوقف المحاولة دلوقتي
+            }
+        }
+
         try
         {
             await provider.EnsureReadyAsync(name);
@@ -142,6 +152,16 @@ public class VoiceCoordinator : MonoBehaviour
     public async Task<bool> StartPrivateCallAsync(string privateChannel)
     {
         if (provider == null) return false;
+
+        if (Application.platform == RuntimePlatform.Android)
+        {
+            if (!AndroidMicPermissionGate.HasMicPermission())
+            {
+                AndroidMicPermissionGate.RequestMicPermission();
+                Debug.LogWarning("[VOICECOORD] Requested mic permission for private call. Waiting for user...");
+                return false;
+            }
+        }
 
         string name = ResolveName();
         activePrivateChannel = privateChannel;

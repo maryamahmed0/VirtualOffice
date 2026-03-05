@@ -1,14 +1,14 @@
 ﻿using UnityEngine;
 
-public class RoomContext : MonoBehaviour
+public class RoomMarker : MonoBehaviour
 {
     [Header("Room Identity")]
     public string roomId = "main";
     public RoomType roomType = RoomType.None;
 
     [Header("Optional Metadata")]
-    public string teamId = ""; 
-    public bool enableRoomVoice = false; 
+    public string teamId = "";
+    public bool enableRoomVoice = false;
 
     public string GetDebugName()
     {

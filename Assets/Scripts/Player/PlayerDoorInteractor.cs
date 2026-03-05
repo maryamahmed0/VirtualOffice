@@ -24,13 +24,22 @@ public class PlayerDoorInteractor : NetworkBehaviour
             currentDoor = null;
         }
     }
+    public bool HasDoorInRange => currentDoor != null;
 
+    public void UseDoor()
+    {
+        if (!IsOwner) return;
+        if (currentDoor == null) return;
+
+        Debug.Log($"[DOOR] UseDoor() -> {currentDoor.doorId}");
+        UseDoorServerRpc(currentDoor.doorId);
+    }
     private void Update()
     {
         if (!IsOwner) return;
         if (currentDoor == null) return;
 
-        if (Input.GetKeyDown(KeyCode.F))
+        if (!Application.isMobilePlatform && Input.GetKeyDown(KeyCode.F))
         {
             Debug.Log($"[DOOR] F pressed -> {currentDoor.doorId}");
             UseDoorServerRpc(currentDoor.doorId);
@@ -84,4 +93,6 @@ public class PlayerDoorInteractor : NetworkBehaviour
 
         Debug.Log($"[DOOR][SERVER] client={clientId} -> {door.destinationZone} teleportedTo={pos}");
     }
+
+   
 }

@@ -74,6 +74,9 @@ public class ConnectionApprovalHandler : MonoBehaviour
         res.CreatePlayerObject = true;
         res.Pending = false;
 
+        int teamHash = Animator.StringToHash(team);
+        PresenceService.EnqueueApproval(req.ClientNetworkId, name, org, teamHash, teamSize);
+
         Debug.Log($"[APPROVAL] Approved client {req.ClientNetworkId} name='{name}' org='{org}' team='{team}' size={teamSize}");
     }
 }
