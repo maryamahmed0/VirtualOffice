@@ -52,14 +52,14 @@ public class CallRpcDispatcher : NetworkBehaviour
     {
         Debug.Log($"[CALLRPC][SERVER] Request from {callerClientId} -> {targetClientId} name={callerName}");
 
-        // ابعتي للTarget: اسم الـ caller
+
         var sendTarget = new ClientRpcParams
         {
             Send = new ClientRpcSendParams { TargetClientIds = new[] { targetClientId } }
         };
         IncomingCallClientRpc(callerName, callerClientId, sendTarget);
 
-        // ابعتي للCaller: Ringing + اسم الـ target (عشان outgoing card تبقى صح)
+
         string targetName = GetNameOnServer(targetClientId);
 
         var sendCaller = new ClientRpcParams

@@ -9,7 +9,7 @@ public struct PresenceEntry : INetworkSerializable
     public FixedString64Bytes Name;
     public FixedString32Bytes Org;
     public int TeamIdHash;
-    public int Zone; // cast from NetRoomState.Zone
+    public int Zone;
 
     public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
     {

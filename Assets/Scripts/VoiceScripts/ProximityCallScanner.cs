@@ -36,7 +36,6 @@ public class ProximityCallScanner : NetworkBehaviour
         if (!IsOwner) { enabled = false; return; }
         enabled = true;
 
-        // ✅ امسك الـ visibility filter مرة واحدة
         vis = FindFirstObjectByType<LocalVisibilityFilter>(FindObjectsInactive.Exclude);
 
         Debug.Log("[CALLSCAN] Local scanner started ✅ owner=" + OwnerClientId);
@@ -50,7 +49,7 @@ public class ProximityCallScanner : NetworkBehaviour
             Scan();
         }
 
-        // للـ PC فقط (اختياري)
+
         if (CanCall && Input.GetKeyDown(KeyCode.E))
         {
             TryRequestCall();
@@ -84,7 +83,7 @@ public class ProximityCallScanner : NetworkBehaviour
         _nearest = null;
         nearestDist = float.MaxValue;
 
-        // ✅ لو في Meeting، ممنوع private calls
+
         if (PlayerRoomState.LocalInstance != null &&
             PlayerRoomState.LocalInstance.CurrentContext != null &&
             PlayerRoomState.LocalInstance.CurrentContext.roomType == RoomType.Meeting)
@@ -95,7 +94,6 @@ public class ProximityCallScanner : NetworkBehaviour
 
         if (NetworkManager.Singleton == null) { ClearIfHadTarget(); return; }
 
-        // لو vis اتعمل Destroy لأي سبب، رجّعه
         if (vis == null)
             vis = FindFirstObjectByType<LocalVisibilityFilter>(FindObjectsInactive.Exclude);
 
@@ -109,7 +107,6 @@ public class ProximityCallScanner : NetworkBehaviour
             if (no.GetComponent<PlayerRoomState>() == null) continue;
             if (no.OwnerClientId == NetworkManager.Singleton.LocalClientId) continue;
 
-            // ✅ فلترة: ما تسكانش على حد "مش ظاهر" حسب TeamRoom rules
             if (vis != null && !vis.IsVisibleToLocal(no.gameObject))
                 continue;
 

@@ -9,13 +9,12 @@ public class ConnectionApprovalHandler : MonoBehaviour
 
     private IEnumerator Start()
     {
-        // استنى لحد ما NetworkManager يبقى موجود
         while (NetworkManager.Singleton == null)
             yield return null;
 
         var nm = NetworkManager.Singleton;
 
-        // لازم قبل StartHost/StartClient
+
         nm.NetworkConfig.ConnectionApproval = true;
 
         if (!installed)
@@ -39,7 +38,7 @@ public class ConnectionApprovalHandler : MonoBehaviour
         try { payload = req.Payload != null ? Encoding.UTF8.GetString(req.Payload) : ""; }
         catch { payload = ""; }
         Debug.Log($"[APPROVAL] RAW payload='{payload}' len={payload.Length}");
-        // payload: name|org|teamId|teamSize
+        // payload
         string name = "";
         string org = "";
         string team = "TECH";

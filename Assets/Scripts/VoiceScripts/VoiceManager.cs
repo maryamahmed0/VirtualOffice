@@ -62,7 +62,7 @@ public class VoiceManager : MonoBehaviour
                 {
                     Debug.LogWarning($"[VOICE] Login attempt {attempt} failed:\n{e}");
 
-                    await TryLogoutReset(); // ✅ reset مهم بعد timeout/invalid state
+                    await TryLogoutReset(); 
 
                     if (attempt == maxAttempts) throw;
 
@@ -78,7 +78,7 @@ public class VoiceManager : MonoBehaviour
         }
         finally
         {
-            _loginTask = null; // مهم: تتصفّر مرة واحدة بعد ما المحاولة تخلص فعلاً
+            _loginTask = null; 
         }
     }
 
@@ -89,7 +89,7 @@ public class VoiceManager : MonoBehaviour
         await _lock.WaitAsync();
         try
         {
-            loginWait = _loginTask; // لو في login شغال
+            loginWait = _loginTask; 
             if (IsLoggedIn == false && loginWait == null)
                 throw new System.InvalidOperationException("Join before login");
 
@@ -116,7 +116,7 @@ public class VoiceManager : MonoBehaviour
 
             await VivoxService.Instance.JoinGroupChannelAsync(
                 channelName,
-                ChatCapability.AudioOnly // ✅ صوت فقط
+                ChatCapability.AudioOnly
             );
 
             CurrentChannel = channelName;
@@ -129,7 +129,6 @@ public class VoiceManager : MonoBehaviour
         }
         finally
         {
-            // ✅ reset task state سواء success أو fail
             _joinTask = null;
             _joiningChannel = null;
         }
@@ -203,14 +202,13 @@ public class VoiceManager : MonoBehaviour
     {
         try
         {
-            // لو موجودة في نسختك
+       
             await VivoxService.Instance.LogoutAsync();
             Debug.Log("[VOICE] Logout reset done");
         }
         catch
         {
-            // بعض النسخ ممكن مايبقاش فيها LogoutAsync
-            // أو تفشل لو مش logged in — تجاهلي
+
         }
 
         IsLoggedIn = false;

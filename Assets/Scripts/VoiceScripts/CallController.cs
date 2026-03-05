@@ -58,7 +58,7 @@ public class CallController : NetworkBehaviour
 
         otherClientId = targetClientId;
 
-        // ✅ حاولي تجيبي اسمه لو موجود محليًا (هيتثبت أكتر من السيرفر بعد ثواني)
+
         otherDisplayName = PlayerIdentity.GetName(targetClientId);
 
         state = CallState.RingingOut;
@@ -125,14 +125,14 @@ public class CallController : NetworkBehaviour
         state = CallState.RingingIn;
         otherClientId = callerClientId;
 
-        // ✅ اسم اللي بيرن
+
         otherDisplayName = callerName;
 
         OnIncomingCall?.Invoke(callerName, callerClientId);
         Debug.Log($"[CALL] Incoming (dispatcher) from {callerName} ({callerClientId})");
     }
 
-    // ✅ السيرفر هيرجعلك اسم التارجت هنا عشان Outgoing card تبقى دايمًا صح
+
     public void ReceiveOutgoingRingingFromDispatcher(ulong targetClientId, string targetName)
     {
         if (!IsOwner) return;
@@ -144,7 +144,7 @@ public class CallController : NetworkBehaviour
         Debug.Log($"[CALL] Ringing (dispatcher) target {targetClientId} name={otherDisplayName}...");
     }
 
-    // ✅ نسخة جديدة: بتستقبل الاسمين من السيرفر
+
     public void ReceiveStartPrivateFromDispatcher(string channel, ulong callerId, ulong calleeId, string callerName, string calleeName)
     {
         if (!IsOwner) return;

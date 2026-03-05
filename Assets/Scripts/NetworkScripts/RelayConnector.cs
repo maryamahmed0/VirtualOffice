@@ -43,7 +43,6 @@ public class RelayConnector : MonoBehaviour
         }
     }
 
-    // ✅ Optional: تأكيد إن payload معمول قبل StartHost/StartClient
     private static void AssertPayloadAlreadySet()
     {
         var nm = NetworkManager.Singleton;
@@ -84,7 +83,7 @@ public class RelayConnector : MonoBehaviour
 
         transport.SetRelayServerData(new RelayServerData(alloc, RelayProtocol));
 
-        // ❌ متكتبش payload هنا
+
         AssertPayloadAlreadySet();
 
         bool ok = NetworkManager.Singleton.StartHost();
@@ -111,7 +110,7 @@ public class RelayConnector : MonoBehaviour
 
         transport.SetRelayServerData(new RelayServerData(joinAlloc, RelayProtocol));
 
-        // ❌ متكتبش payload هنا
+
         AssertPayloadAlreadySet();
 
         bool ok = NetworkManager.Singleton.StartClient();

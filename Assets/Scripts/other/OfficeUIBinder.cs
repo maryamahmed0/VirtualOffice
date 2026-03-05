@@ -28,7 +28,7 @@ public class OfficeUIBinder : MonoBehaviour
     [Header("InCall Status Colors")]
     [SerializeField] private Color connectingColor = Color.yellow;
     [SerializeField] private Color connectedColor = Color.green;
-    [SerializeField] private Color failedColor = Color.red;          // ✅ جديد
+    [SerializeField] private Color failedColor = Color.red;          
     [SerializeField] private Color defaultStatusColor = Color.white;
 
     [Header("InCall Mic Icons (GameObjects)")]
@@ -74,7 +74,7 @@ public class OfficeUIBinder : MonoBehaviour
         {
             room = PlayerRoomState.LocalInstance;
             call = room.GetComponent<CallController>();
-            netRoom = room.GetComponentInParent<NetRoomState>(); // ✅ الجديد
+            netRoom = room.GetComponentInParent<NetRoomState>();
 
             Debug.Log("[UIBINDER] Hooked. roomType=" + room.CurrentRoomType + " hasCall=" + (call != null));
 
@@ -164,7 +164,6 @@ public class OfficeUIBinder : MonoBehaviour
 
         inCallStatusText.text = status;
 
-        // ✅ Coloring rules
         if (status == "Connected")
         {
             inCallStatusText.color = connectedColor;

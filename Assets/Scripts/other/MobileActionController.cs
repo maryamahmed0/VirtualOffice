@@ -53,22 +53,21 @@ public class MobileActionController : MonoBehaviour
         HookLocal();
 
         bool inMeeting = (netRoom != null && netRoom.GetZone() == NetRoomState.Zone.Meeting);
+        bool inCall = (callController != null && callController.State != CallController.CallState.Idle);
 
-        // لو في مكالمة شغالة، خلي الزر disabled (اختياري)
-        if (callController != null && callController.State != CallController.CallState.Idle)
-        {
-            SetState(ActionType.None, "In Call");
-            return;
-        }
-
-        // ✅ Door أولاً
         if (doorInteractor != null && doorInteractor.HasDoorInRange)
         {
             SetState(ActionType.Door, "Enter");
             return;
         }
 
-        // ✅ Call ثانيًا (ممنوع في meeting)
+    
+        if (inCall)
+        {
+            SetState(ActionType.None, "In Call");
+            return;
+        }
+
         if (!inMeeting && callScanner != null && callScanner.CanCall)
         {
             SetState(ActionType.Call, "Call");

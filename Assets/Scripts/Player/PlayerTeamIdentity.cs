@@ -3,14 +3,13 @@ using UnityEngine;
 
 public class PlayerTeamIdentity : NetworkBehaviour
 {
-    // نخزن TeamId كـ int hash عشان نتفادى FixedString delta bugs
     public NetworkVariable<int> TeamIdHash =
         new NetworkVariable<int>(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
     public NetworkVariable<int> TeamSize =
         new NetworkVariable<int>(8, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
-    // 0 Small, 1 Med, 2 Large
+
     public NetworkVariable<int> LayoutIndex =
         new NetworkVariable<int>(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 

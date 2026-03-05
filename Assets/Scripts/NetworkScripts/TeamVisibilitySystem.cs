@@ -74,7 +74,6 @@ public class TeamVisibilitySystem : MonoBehaviour
             if (p != null) targets.Add(p);
         }
 
-        // ✅ observers الحقيقيين = clientIds الرسمية
         var observers = nm.ConnectedClientsIds;
 
         Debug.Log($"[VIS] FullRefresh START. reason={reason} targets={targets.Count} observers={observers.Count}");
@@ -87,10 +86,10 @@ public class TeamVisibilitySystem : MonoBehaviour
 
             foreach (var observerId in observers)
             {
-                // يشوف نفسه
+
                 if (observerId == target.OwnerClientId) { SafeShow(target, observerId); continue; }
 
-                // observer player object
+
                 if (!nm.ConnectedClients.TryGetValue(observerId, out var obsClient) || obsClient.PlayerObject == null)
                     continue;
 
