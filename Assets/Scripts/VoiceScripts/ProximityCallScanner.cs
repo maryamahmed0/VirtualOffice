@@ -49,7 +49,7 @@ public class ProximityCallScanner : NetworkBehaviour
             Scan();
         }
 
-
+        if (UIInputBlocker.BlockGameplayInput) return;
         if (CanCall && Input.GetKeyDown(KeyCode.E))
         {
             TryRequestCall();

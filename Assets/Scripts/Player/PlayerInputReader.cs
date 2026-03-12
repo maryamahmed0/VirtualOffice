@@ -26,11 +26,26 @@ public class PlayerInputReader : NetworkBehaviour
 
     private void OnMove(InputAction.CallbackContext ctx)
     {
-        if (UseMobileOverride) return; 
+        if (UIInputBlocker.BlockGameplayInput)
+        {
+            Move = Vector2.zero;
+            return;
+        }
+
+        if (UseMobileOverride)
+            return;
+
         Move = ctx.ReadValue<Vector2>();
     }
+
     public void SetMoveFromUI(Vector2 v)
     {
+        if (UIInputBlocker.BlockGameplayInput)
+        {
+            Move = Vector2.zero;
+            return;
+        }
+
         UseMobileOverride = true;
         mobileMove = v;
         Move = v;
@@ -41,6 +56,14 @@ public class PlayerInputReader : NetworkBehaviour
         UseMobileOverride = false;
         mobileMove = Vector2.zero;
         Move = Vector2.zero;
+    }
+
+    private void Update()
+    {
+        if (!IsOwner) return;
+
+        if (UIInputBlocker.BlockGameplayInput)
+            Move = Vector2.zero;
     }
 
     public override void OnNetworkDespawn()
