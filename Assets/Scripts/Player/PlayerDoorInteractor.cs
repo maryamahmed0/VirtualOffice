@@ -8,6 +8,7 @@ public class PlayerDoorInteractor : NetworkBehaviour
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (!IsOwner) return;
+
         if (other.TryGetComponent(out DoorTrigger door))
         {
             currentDoor = door;
@@ -18,25 +19,30 @@ public class PlayerDoorInteractor : NetworkBehaviour
     private void OnTriggerExit2D(Collider2D other)
     {
         if (!IsOwner) return;
+
         if (other.TryGetComponent(out DoorTrigger door) && door == currentDoor)
         {
             Debug.Log($"[DOOR] Out of range: {door.doorId}");
             currentDoor = null;
         }
     }
+
     public bool HasDoorInRange => currentDoor != null;
 
     public void UseDoor()
     {
         if (!IsOwner) return;
+        if (UIInputBlocker.BlockGameplayInput) return;
         if (currentDoor == null) return;
 
         Debug.Log($"[DOOR] UseDoor() -> {currentDoor.doorId}");
         UseDoorServerRpc(currentDoor.doorId);
     }
+
     private void Update()
     {
         if (!IsOwner) return;
+        if (UIInputBlocker.BlockGameplayInput) return;
         if (currentDoor == null) return;
 
         if (!Application.isMobilePlatform && Input.GetKeyDown(KeyCode.F))
@@ -71,11 +77,9 @@ public class PlayerDoorInteractor : NetworkBehaviour
 
         var playerObj = cc.PlayerObject;
 
-        // set zone on server
         var room = playerObj.GetComponent<NetRoomState>();
         room?.ServerSetZone(door.destinationZone);
 
-        // teleport server-authoritative
         Vector3 pos = door.targetSpawnPoint.position;
         var rb = playerObj.GetComponent<Rigidbody2D>();
         if (rb != null)
@@ -93,6 +97,4 @@ public class PlayerDoorInteractor : NetworkBehaviour
 
         Debug.Log($"[DOOR][SERVER] client={clientId} -> {door.destinationZone} teleportedTo={pos}");
     }
-
-   
 }
