@@ -20,12 +20,26 @@ public class PeopleRowUI : MonoBehaviour
         if (zoneText) zoneText.text = ZoneToString((NetRoomState.Zone)p.Zone);
 
         bool isMe = (targetClientId == localId);
+        bool localInMeeting = false;
+        bool targetInMeeting = ((NetRoomState.Zone)p.Zone) == NetRoomState.Zone.Meeting;
+
+        var lp = NetworkManager.Singleton?.LocalClient?.PlayerObject;
+        if (lp != null)
+        {
+            var netRoom = lp.GetComponent<NetRoomState>();
+            if (netRoom != null)
+                localInMeeting = netRoom.GetZone() == NetRoomState.Zone.Meeting;
+        }
+
+        bool canShowCall = !isMe && !localInMeeting && !targetInMeeting;
 
         if (callButton)
         {
-            callButton.gameObject.SetActive(!isMe);
+            callButton.gameObject.SetActive(canShowCall);
             callButton.onClick.RemoveAllListeners();
-            callButton.onClick.AddListener(TryCall);
+
+            if (canShowCall)
+                callButton.onClick.AddListener(TryCall);
         }
     }
 
@@ -34,13 +48,13 @@ public class PeopleRowUI : MonoBehaviour
         var lp = NetworkManager.Singleton?.LocalClient?.PlayerObject;
         if (lp == null) return;
 
-        // ممنوع private call في meeting (عندك نفس المنطق في CallController بس نخليه UI-friendly)
-        var netRoom = lp.GetComponentInParent<NetRoomState>();
+        var netRoom = lp.GetComponent<NetRoomState>();
         if (netRoom != null && netRoom.GetZone() == NetRoomState.Zone.Meeting)
             return;
 
         var call = lp.GetComponent<CallController>();
         if (call == null) return;
+        if (call.State != CallController.CallState.Idle) return;
 
         call.RequestCall(targetClientId);
     }
@@ -52,4 +66,5 @@ public class PeopleRowUI : MonoBehaviour
         NetRoomState.Zone.Meeting => "Meeting",
         _ => z.ToString()
     };
+
 }

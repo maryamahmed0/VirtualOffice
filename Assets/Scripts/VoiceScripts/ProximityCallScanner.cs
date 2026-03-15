@@ -50,6 +50,8 @@ public class ProximityCallScanner : NetworkBehaviour
         }
 
         if (UIInputBlocker.BlockGameplayInput) return;
+        if (IsLocalInMeeting()) return;
+
         if (CanCall && Input.GetKeyDown(KeyCode.E))
         {
             TryRequestCall();
@@ -58,6 +60,9 @@ public class ProximityCallScanner : NetworkBehaviour
 
     public void TryRequestCall()
     {
+        if (IsLocalInMeeting())
+            return;
+
         var call = GetComponent<CallController>();
         if (call == null || NearestTarget == null) return;
 
@@ -153,5 +158,11 @@ public class ProximityCallScanner : NetworkBehaviour
 
             OnTargetCleared?.Invoke();
         }
+    }
+    private bool IsLocalInMeeting()
+    {
+        return PlayerRoomState.LocalInstance != null &&
+               PlayerRoomState.LocalInstance.CurrentContext != null &&
+               PlayerRoomState.LocalInstance.CurrentContext.roomType == RoomType.Meeting;
     }
 }

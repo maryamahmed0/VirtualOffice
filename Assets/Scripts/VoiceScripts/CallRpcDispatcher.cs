@@ -1,9 +1,25 @@
-﻿using Unity.Netcode;
+﻿using System.Collections;
+using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
 public class CallRpcDispatcher : NetworkBehaviour
 {
     public static CallRpcDispatcher Instance { get; private set; }
+
+    [SerializeField] private float privateVoiceReadyTimeout = 10f;
+
+    private class PrivateVoiceSession
+    {
+        public ulong CallerId;
+        public ulong CalleeId;
+        public string Channel;
+        public bool CallerReady;
+        public bool CalleeReady;
+        public Coroutine TimeoutRoutine;
+    }
+
+    private readonly Dictionary<string, PrivateVoiceSession> _privateVoiceSessions = new();
 
     private void Awake()
     {
@@ -52,13 +68,37 @@ public class CallRpcDispatcher : NetworkBehaviour
     {
         Debug.Log($"[CALLRPC][SERVER] Request from {callerClientId} -> {targetClientId} name={callerName}");
 
+        if (NetworkManager.Singleton == null)
+            return;
+
+        if (!NetworkManager.Singleton.ConnectedClients.TryGetValue(callerClientId, out var callerClient) ||
+            callerClient.PlayerObject == null)
+            return;
+
+        if (!NetworkManager.Singleton.ConnectedClients.TryGetValue(targetClientId, out var targetClient) ||
+            targetClient.PlayerObject == null)
+            return;
+
+        var callerRoom = callerClient.PlayerObject.GetComponent<NetRoomState>();
+        var targetRoom = targetClient.PlayerObject.GetComponent<NetRoomState>();
+
+        if (callerRoom != null && callerRoom.GetZone() == NetRoomState.Zone.Meeting)
+        {
+            Debug.Log("[CALLRPC][SERVER] Blocked request: caller is in Meeting");
+            return;
+        }
+
+        if (targetRoom != null && targetRoom.GetZone() == NetRoomState.Zone.Meeting)
+        {
+            Debug.Log("[CALLRPC][SERVER] Blocked request: target is in Meeting");
+            return;
+        }
 
         var sendTarget = new ClientRpcParams
         {
             Send = new ClientRpcSendParams { TargetClientIds = new[] { targetClientId } }
         };
         IncomingCallClientRpc(callerName, callerClientId, sendTarget);
-
 
         string targetName = GetNameOnServer(targetClientId);
 
@@ -102,6 +142,26 @@ public class CallRpcDispatcher : NetworkBehaviour
         string channel =
             $"P_{Mathf.Min((int)callerClientId, (int)calleeClientId)}_{Mathf.Max((int)callerClientId, (int)calleeClientId)}_{UnityEngine.Random.Range(1000, 9999)}";
 
+        if (_privateVoiceSessions.TryGetValue(channel, out var existing))
+        {
+            if (existing.TimeoutRoutine != null)
+                StopCoroutine(existing.TimeoutRoutine);
+
+            _privateVoiceSessions.Remove(channel);
+        }
+
+        var session = new PrivateVoiceSession
+        {
+            CallerId = callerClientId,
+            CalleeId = calleeClientId,
+            Channel = channel,
+            CallerReady = false,
+            CalleeReady = false
+        };
+
+        session.TimeoutRoutine = StartCoroutine(PrivateVoiceReadyTimeoutRoutine(session));
+        _privateVoiceSessions[channel] = session;
+
         var sendBoth = new ClientRpcParams
         {
             Send = new ClientRpcSendParams { TargetClientIds = new[] { callerClientId, calleeClientId } }
@@ -120,6 +180,117 @@ public class CallRpcDispatcher : NetworkBehaviour
     }
 
     // ======================
+    // Voice Ready / Fail handshake
+    // ======================
+
+    [ServerRpc(RequireOwnership = false)]
+    public void PrivateVoiceReadyServerRpc(string channel, ulong whoReady, ulong otherClientId)
+    {
+        if (string.IsNullOrWhiteSpace(channel)) return;
+        if (!_privateVoiceSessions.TryGetValue(channel, out var session)) return;
+
+        if (whoReady == session.CallerId)
+            session.CallerReady = true;
+        else if (whoReady == session.CalleeId)
+            session.CalleeReady = true;
+        else
+            return;
+
+        Debug.Log($"[CALLRPC][SERVER] PrivateVoiceReady who={whoReady} channel={channel} callerReady={session.CallerReady} calleeReady={session.CalleeReady}");
+
+        if (session.CallerReady && session.CalleeReady)
+        {
+            NotifyPrivateVoiceConnected(session);
+            CleanupPrivateVoiceSession(channel);
+        }
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void PrivateVoiceFailedServerRpc(string channel, ulong whoFailed, ulong otherClientId, string reason)
+    {
+        if (string.IsNullOrWhiteSpace(channel)) return;
+        if (!_privateVoiceSessions.TryGetValue(channel, out var session)) return;
+
+        Debug.Log($"[CALLRPC][SERVER] PrivateVoiceFailed who={whoFailed} channel={channel} reason={reason}");
+
+        NotifyPrivateVoiceFailed(session, reason);
+        CleanupPrivateVoiceSession(channel);
+    }
+
+    private IEnumerator PrivateVoiceReadyTimeoutRoutine(PrivateVoiceSession session)
+    {
+        yield return new WaitForSeconds(privateVoiceReadyTimeout);
+
+        if (session == null) yield break;
+        if (!_privateVoiceSessions.ContainsKey(session.Channel)) yield break;
+
+        if (!(session.CallerReady && session.CalleeReady))
+        {
+            Debug.Log($"[CALLRPC][SERVER] Private voice timeout channel={session.Channel}");
+
+            NotifyPrivateVoiceFailed(session, "Connection failed");
+            CleanupPrivateVoiceSession(session.Channel);
+        }
+    }
+
+    private void NotifyPrivateVoiceConnected(PrivateVoiceSession session)
+    {
+        var sendBoth = new ClientRpcParams
+        {
+            Send = new ClientRpcSendParams
+            {
+                TargetClientIds = new[] { session.CallerId, session.CalleeId }
+            }
+        };
+
+        PrivateVoiceConnectedClientRpc(session.Channel, sendBoth);
+    }
+
+    private void NotifyPrivateVoiceFailed(PrivateVoiceSession session, string reason)
+    {
+        var sendBoth = new ClientRpcParams
+        {
+            Send = new ClientRpcSendParams
+            {
+                TargetClientIds = new[] { session.CallerId, session.CalleeId }
+            }
+        };
+
+        PrivateVoiceFailedClientRpc(session.Channel, reason, sendBoth);
+    }
+
+    private void CleanupPrivateVoiceSession(string channel)
+    {
+        if (string.IsNullOrWhiteSpace(channel)) return;
+
+        if (_privateVoiceSessions.TryGetValue(channel, out var session))
+        {
+            if (session.TimeoutRoutine != null)
+                StopCoroutine(session.TimeoutRoutine);
+        }
+
+        _privateVoiceSessions.Remove(channel);
+    }
+
+    [ClientRpc]
+    private void PrivateVoiceConnectedClientRpc(string channel, ClientRpcParams rpcParams = default)
+    {
+        var call = FindLocalCallController();
+        if (call == null) return;
+
+        call.ReceivePrivateConnectedFromDispatcher(channel);
+    }
+
+    [ClientRpc]
+    private void PrivateVoiceFailedClientRpc(string channel, string reason, ClientRpcParams rpcParams = default)
+    {
+        var call = FindLocalCallController();
+        if (call == null) return;
+
+        call.ReceivePrivateFailedFromDispatcher(channel, reason);
+    }
+
+    // ======================
     // End (Server -> Both)
     // ======================
 
@@ -127,6 +298,8 @@ public class CallRpcDispatcher : NetworkBehaviour
     public void EndCallServerRpc(ulong otherClientId, ulong whoEnded, string channel)
     {
         Debug.Log($"[CALLRPC][SERVER] End who={whoEnded} -> other={otherClientId} channel={channel}");
+
+        CleanupPrivateVoiceSession(channel);
 
         var sendBoth = new ClientRpcParams
         {

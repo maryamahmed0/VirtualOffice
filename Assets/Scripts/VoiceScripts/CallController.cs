@@ -57,8 +57,6 @@ public class CallController : NetworkBehaviour
         }
 
         otherClientId = targetClientId;
-
-
         otherDisplayName = PlayerIdentity.GetName(targetClientId);
 
         state = CallState.RingingOut;
@@ -124,14 +122,11 @@ public class CallController : NetworkBehaviour
 
         state = CallState.RingingIn;
         otherClientId = callerClientId;
-
-
         otherDisplayName = callerName;
 
         OnIncomingCall?.Invoke(callerName, callerClientId);
         Debug.Log($"[CALL] Incoming (dispatcher) from {callerName} ({callerClientId})");
     }
-
 
     public void ReceiveOutgoingRingingFromDispatcher(ulong targetClientId, string targetName)
     {
@@ -143,7 +138,6 @@ public class CallController : NetworkBehaviour
 
         Debug.Log($"[CALL] Ringing (dispatcher) target {targetClientId} name={otherDisplayName}...");
     }
-
 
     public void ReceiveStartPrivateFromDispatcher(string channel, ulong callerId, ulong calleeId, string callerName, string calleeName)
     {
@@ -163,6 +157,28 @@ public class CallController : NetworkBehaviour
         OnVoiceStatusChanged?.Invoke("Connecting...");
 
         _ = StartPrivateVoiceFlowAsync(channel);
+    }
+
+    public void ReceivePrivateConnectedFromDispatcher(string channel)
+    {
+        if (!IsOwner) return;
+        if (state == CallState.Idle) return;
+        if (activePrivateChannel != channel) return;
+
+        state = CallState.InCall;
+        OnVoiceStatusChanged?.Invoke("Connected");
+
+        Debug.Log($"[CALL] Private voice confirmed CONNECTED channel={channel}");
+    }
+
+    public void ReceivePrivateFailedFromDispatcher(string channel, string reason)
+    {
+        if (!IsOwner) return;
+        if (state == CallState.Idle) return;
+        if (activePrivateChannel != channel) return;
+
+        Debug.Log($"[CALL] Private voice FAILED channel={channel} reason={reason}");
+        _ = FailAndResetSoonAsync(channel, string.IsNullOrWhiteSpace(reason) ? "Connection failed" : reason);
     }
 
     public void ReceiveRemoteEndedFromDispatcher(ulong whoEnded, string channel)
@@ -214,7 +230,7 @@ public class CallController : NetworkBehaviour
         {
             Debug.LogWarning("[CALL] No VoiceCoordinator found.");
             OnVoiceStatusChanged?.Invoke("Voice unavailable");
-            state = CallState.InCall;
+            _ = FailAndResetSoonAsync(channel, "Voice unavailable");
             return;
         }
 
@@ -226,19 +242,45 @@ public class CallController : NetworkBehaviour
 
         if (ok)
         {
-            state = CallState.InCall;
-            OnVoiceStatusChanged?.Invoke("Connected");
+            OnVoiceStatusChanged?.Invoke("Connecting...");
+
+            if (NetworkManager.Singleton != null)
+            {
+                CallRpcDispatcher.Instance.PrivateVoiceReadyServerRpc(
+                    channel,
+                    NetworkManager.Singleton.LocalClientId,
+                    otherClientId);
+            }
         }
         else
         {
-            OnVoiceStatusChanged?.Invoke("Voice failed");
+            OnVoiceStatusChanged?.Invoke("Connection failed");
 
             if (otherClientId != 0 && NetworkManager.Singleton != null)
             {
-                CallRpcDispatcher.Instance.EndCallServerRpc(otherClientId, NetworkManager.Singleton.LocalClientId, channel);
+                CallRpcDispatcher.Instance.PrivateVoiceFailedServerRpc(
+                    channel,
+                    NetworkManager.Singleton.LocalClientId,
+                    otherClientId,
+                    "Connection failed");
             }
-            ResetLocalAndNotify();
+
+            _ = FailAndResetSoonAsync(channel, "Connection failed");
         }
+    }
+
+    private async Task FailAndResetSoonAsync(string channel, string status)
+    {
+        OnVoiceStatusChanged?.Invoke(status);
+
+        EnsureCoordinator();
+        if (_voiceCoord != null && !string.IsNullOrEmpty(channel))
+            await _voiceCoord.EndPrivateCallAsync();
+
+        await Task.Delay(1200);
+
+        if (activePrivateChannel == channel || state == CallState.Connecting || state == CallState.InCall)
+            ResetLocalAndNotify();
     }
 
     // ===== Helpers =====
