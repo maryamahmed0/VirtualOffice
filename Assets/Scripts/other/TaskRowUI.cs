@@ -7,18 +7,33 @@ public class TaskRowUI : MonoBehaviour
     [SerializeField] private TMP_Text titleText;
     [SerializeField] private TMP_Text statusText;
     [SerializeField] private Image statusDot;
+    [SerializeField] private RectTransform rootRect;
 
     public void Bind(string title, string status)
     {
         if (titleText) titleText.text = title;
 
-        // نخلي شكل الستيت موحّد
         string s = Normalize(status);
         if (statusText) statusText.text = s;
 
         var c = ColorForStatus(s);
         if (statusDot) statusDot.color = c;
         if (statusText) statusText.color = c;
+
+        RefreshLayout();
+    }
+
+    private void RefreshLayout()
+    {
+        Canvas.ForceUpdateCanvases();
+
+        if (titleText != null)
+            LayoutRebuilder.ForceRebuildLayoutImmediate(titleText.rectTransform);
+
+        if (rootRect != null)
+            LayoutRebuilder.ForceRebuildLayoutImmediate(rootRect);
+        else if (transform is RectTransform rt)
+            LayoutRebuilder.ForceRebuildLayoutImmediate(rt);
     }
 
     private static string Normalize(string s)
@@ -26,7 +41,6 @@ public class TaskRowUI : MonoBehaviour
         if (string.IsNullOrWhiteSpace(s)) return "Todo";
         s = s.Trim();
 
-        // توحيد الكتابة
         if (s.Equals("to do", System.StringComparison.OrdinalIgnoreCase)) return "Todo";
         if (s.Equals("doing", System.StringComparison.OrdinalIgnoreCase)) return "Doing";
         if (s.Equals("done", System.StringComparison.OrdinalIgnoreCase)) return "Done";
@@ -35,9 +49,8 @@ public class TaskRowUI : MonoBehaviour
 
     private static Color ColorForStatus(string s)
     {
-        // ألوان لطيفة ومش فاقعة
-        if (s == "Done") return new Color(0.35f, 0.85f, 0.55f, 1f); // أخضر
-        if (s == "Doing") return new Color(1.00f, 0.82f, 0.25f, 1f); // أصفر
-        return new Color(0.95f, 0.45f, 0.45f, 1f);                  // أحمر (Todo)
+        if (s == "Done") return new Color(0.35f, 0.85f, 0.55f, 1f);
+        if (s == "Doing") return new Color(1.00f, 0.82f, 0.25f, 1f);
+        return new Color(0.95f, 0.45f, 0.45f, 1f);
     }
 }

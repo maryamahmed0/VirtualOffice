@@ -3,10 +3,13 @@ using TMPro;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerIdentity : NetworkBehaviour
 {
+    [Header("UI")]
     [SerializeField] private TMP_Text nameText;
+    [SerializeField] private RectTransform nameplateRoot;
 
     public NetworkVariable<FixedString64Bytes> DisplayName =
         new NetworkVariable<FixedString64Bytes>(
@@ -28,6 +31,9 @@ public class PlayerIdentity : NetworkBehaviour
     {
         if (nameText == null)
             nameText = GetComponentInChildren<TMP_Text>(true);
+
+        if (nameplateRoot == null && nameText != null)
+            nameplateRoot = nameText.GetComponentInParent<RectTransform>();
 
         DisplayName.OnValueChanged += OnNameChanged;
 
@@ -72,9 +78,25 @@ public class PlayerIdentity : NetworkBehaviour
 
         NameByClientId[OwnerClientId] = value;
 
- 
         if (nameText != null)
             nameText.text = value;
+
+        RefreshLayout();
+    }
+
+    private void RefreshLayout()
+    {
+        Canvas.ForceUpdateCanvases();
+
+        if (nameText != null)
+        {
+            var textRect = nameText.rectTransform;
+            if (textRect != null)
+                LayoutRebuilder.ForceRebuildLayoutImmediate(textRect);
+        }
+
+        if (nameplateRoot != null)
+            LayoutRebuilder.ForceRebuildLayoutImmediate(nameplateRoot);
     }
 
     [ServerRpc(RequireOwnership = true)]

@@ -39,10 +39,18 @@ public class DynamicJoystickTouch : MonoBehaviour
 
     private void Update()
     {
+        if (UIInputBlocker.BlockGameplayInput)
+        {
+            if (active)
+                End();
+
+            return;
+        }
+
 #if UNITY_EDITOR || UNITY_STANDALONE
         HandleMouse();
 #else
-        HandleTouch();
+    HandleTouch();
 #endif
     }
 

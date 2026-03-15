@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using Unity.Netcode;
+using UnityEngine.UI;
 
 public class PlayerVoicePresenter : NetworkBehaviour
 {
@@ -7,14 +8,25 @@ public class PlayerVoicePresenter : NetworkBehaviour
 
     [Header("UI")]
     [SerializeField] private GameObject muteIconObject;
-    [SerializeField] private GameObject UnmuteIconObject;
+    [SerializeField] private GameObject unmuteIconObject;
+    [SerializeField] private RectTransform nameplateRoot;
 
     private bool _subscribed;
     private bool _appliedOnceAfterLogin;
 
+    public bool IsMuted => voiceState != null && voiceState.IsMicMuted.Value;
+
     private void Awake()
     {
         voiceState = GetComponent<PlayerVoiceState>();
+
+        if (nameplateRoot == null)
+        {
+            if (muteIconObject != null)
+                nameplateRoot = muteIconObject.GetComponentInParent<RectTransform>();
+            else if (unmuteIconObject != null)
+                nameplateRoot = unmuteIconObject.GetComponentInParent<RectTransform>();
+        }
     }
 
     public override void OnNetworkSpawn()
@@ -47,7 +59,11 @@ public class PlayerVoicePresenter : NetworkBehaviour
 
     private void TryApplyAfterLogin()
     {
-        if (_appliedOnceAfterLogin) { CancelInvoke(nameof(TryApplyAfterLogin)); return; }
+        if (_appliedOnceAfterLogin)
+        {
+            CancelInvoke(nameof(TryApplyAfterLogin));
+            return;
+        }
 
         if (VoiceManager.Instance == null) return;
         if (!VoiceManager.Instance.IsLoggedIn) return;
@@ -63,13 +79,17 @@ public class PlayerVoicePresenter : NetworkBehaviour
         if (!IsOwner) return;
         if (voiceState == null) return;
 
-        bool newMuted = !voiceState.IsMicMuted.Value;
+        SetMute(!voiceState.IsMicMuted.Value);
+    }
 
-        UpdateMuteUI(newMuted);
+    public void SetMute(bool muted)
+    {
+        if (!IsOwner) return;
+        if (voiceState == null) return;
 
-        voiceState.SetMutedServerRpc(newMuted);
-
-        ApplyVivoxMute(newMuted);
+        UpdateMuteUI(muted);
+        voiceState.SetMutedServerRpc(muted);
+        ApplyVivoxMute(muted);
     }
 
     private void OnMuteChanged(bool oldValue, bool newValue)
@@ -83,7 +103,6 @@ public class PlayerVoicePresenter : NetworkBehaviour
     private void ApplyVivoxMute(bool muted)
     {
         if (!IsOwner) return;
-
         if (VoiceManager.Instance == null) return;
         if (!VoiceManager.Instance.IsLoggedIn) return;
 
@@ -93,6 +112,16 @@ public class PlayerVoicePresenter : NetworkBehaviour
     private void UpdateMuteUI(bool muted)
     {
         if (muteIconObject != null) muteIconObject.SetActive(muted);
-        if (UnmuteIconObject != null) UnmuteIconObject.SetActive(!muted);
+        if (unmuteIconObject != null) unmuteIconObject.SetActive(!muted);
+
+        RefreshLayout();
+    }
+
+    private void RefreshLayout()
+    {
+        Canvas.ForceUpdateCanvases();
+
+        if (nameplateRoot != null)
+            LayoutRebuilder.ForceRebuildLayoutImmediate(nameplateRoot);
     }
 }

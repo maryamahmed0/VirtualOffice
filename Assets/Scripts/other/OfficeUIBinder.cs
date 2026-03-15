@@ -37,7 +37,7 @@ public class OfficeUIBinder : MonoBehaviour
 
     private PlayerRoomState room;
     private CallController call;
-    private bool muted;
+    private PlayerVoicePresenter voicePresenter;
     private NetRoomState netRoom;
 
     private void Awake()
@@ -75,6 +75,7 @@ public class OfficeUIBinder : MonoBehaviour
             room = PlayerRoomState.LocalInstance;
             call = room.GetComponent<CallController>();
             netRoom = room.GetComponentInParent<NetRoomState>();
+            voicePresenter = room.GetComponent<PlayerVoicePresenter>();
 
             Debug.Log("[UIBINDER] Hooked. roomType=" + room.CurrentRoomType + " hasCall=" + (call != null));
 
@@ -118,6 +119,7 @@ public class OfficeUIBinder : MonoBehaviour
                     : call.OtherDisplayName;
             }
         }
+        ApplyMuteUI();
     }
 
     private void OnDestroy()
@@ -203,18 +205,19 @@ public class OfficeUIBinder : MonoBehaviour
 
     private void ToggleMute()
     {
-        muted = !muted;
-        if (VoiceManager.Instance != null)
-            VoiceManager.Instance.SetMute(muted);
+        if (voicePresenter == null) return;
+
+        voicePresenter.ToggleMute();
         ApplyMuteUI();
     }
 
     private void ApplyMuteUI()
     {
-        if (inCallMicOnIcon) inCallMicOnIcon.SetActive(!muted);
-        if (inCallMicOffIcon) inCallMicOffIcon.SetActive(muted);
-    }
+        bool mutedNow = voicePresenter != null && voicePresenter.IsMuted;
 
+        if (inCallMicOnIcon) inCallMicOnIcon.SetActive(!mutedNow);
+        if (inCallMicOffIcon) inCallMicOffIcon.SetActive(mutedNow);
+    }
     private void SetAllHidden()
     {
         if (outgoingCard) outgoingCard.SetActive(false);

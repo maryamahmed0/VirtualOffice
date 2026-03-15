@@ -23,7 +23,7 @@ public class TasksPanelUI : MonoBehaviour
             if (rows[i] != null) Destroy(rows[i].gameObject);
         rows.Clear();
 
-        // ✅ Mock tasks (later: backend)
+        //  Mock tasks (later: backend)
         var tasks = BuildMockTasks();
 
         foreach (var t in tasks)
@@ -37,14 +37,15 @@ public class TasksPanelUI : MonoBehaviour
 
     private List<(string title, string status)> BuildMockTasks()
     {
-        // ممكن لاحقًا تربطيها بـPlayerPrefs أو backend
         return new List<(string, string)>
         {
             ("Finish UI People Panel", "Doing"),
             ("Fix TeamRoom Visibility", "Todo"),
             ("Test Vivox on Android", "Done"),
             ("Prepare meeting summary flow", "Todo"),
-            ("Test Scrolling in task View","Doing"),
+            ("Test Scrolling in task View","Doing"), 
+            ("Prepare meeting summary flow and validate mobile scrolling behavior in tasks panel","Doing"),
+
         };
     }
 }

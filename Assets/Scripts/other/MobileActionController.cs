@@ -52,6 +52,12 @@ public class MobileActionController : MonoBehaviour
     {
         HookLocal();
 
+        if (UIInputBlocker.BlockGameplayInput)
+        {
+            SetState(ActionType.None, "...");
+            return;
+        }
+
         bool inMeeting = (netRoom != null && netRoom.GetZone() == NetRoomState.Zone.Meeting);
         bool inCall = (callController != null && callController.State != CallController.CallState.Idle);
 

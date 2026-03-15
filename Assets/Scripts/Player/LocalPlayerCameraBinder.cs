@@ -20,10 +20,8 @@ public class LocalPlayerCameraBinder : NetworkBehaviour
 
         _lastPos = transform.position;
 
-        // bind متأخر عشان spawn يخلص
         StartCoroutine(BindAfterDelay());
 
-        // ✅ راقب لو حصل teleport من default لمكان الـ spawnpoints
         if (!_watchingTeleport)
             StartCoroutine(WatchTeleportThenRebind());
 
@@ -75,7 +73,7 @@ public class LocalPlayerCameraBinder : NetworkBehaviour
         Debug.Log($"[CAM] Scene loaded: {scene.name}, rebinding...");
         StartCoroutine(BindAfterDelay());
 
-        // مع أي scene load، راقب teleport تاني
+     
         if (!_watchingTeleport)
             StartCoroutine(WatchTeleportThenRebind());
     }
@@ -88,14 +86,13 @@ public class LocalPlayerCameraBinder : NetworkBehaviour
         TryBindToThisOwner();
     }
 
-    // ✅ دي أهم إضافة: لو اللاعب اتنقل فجأة بعد spawn (OfficeSpawnManager)، اعمل rebind
+  
     private IEnumerator WatchTeleportThenRebind()
     {
         _watchingTeleport = true;
 
-        // راقب لمدة ثانيتين (120 frame تقريباً)
         int frames = 120;
-        float threshold = 0.5f; // أي تغيير كبير في المكان يعتبر teleport
+        float threshold = 0.5f; 
 
         while (frames-- > 0 && IsOwner)
         {
@@ -126,7 +123,6 @@ public class LocalPlayerCameraBinder : NetworkBehaviour
             return;
         }
 
-        // ✅ ده أهم سطر: اللاعب الحقيقي بتاع الجهاز ده
         var localPlayerObj = nm.SpawnManager.GetLocalPlayerObject();
         if (localPlayerObj == null)
         {
@@ -150,7 +146,7 @@ public class LocalPlayerCameraBinder : NetworkBehaviour
             return;
         }
 
-        // الأفضل: بالاسم
+
         CinemachineVirtualCamera vcam = null;
         var vcamGO = GameObject.Find("Virtual Camera");
         if (vcamGO != null) vcam = vcamGO.GetComponent<CinemachineVirtualCamera>();
@@ -166,7 +162,7 @@ public class LocalPlayerCameraBinder : NetworkBehaviour
 
         vcam.Follow = followTarget;
         vcam.LookAt = followTarget;
-        vcam.PreviousStateIsValid = false; // snap
+        vcam.PreviousStateIsValid = false; 
 
         Debug.Log($"[CAM] Bound vcam to LOCAL PLAYER. LocalNOID={localPlayerObj.NetworkObjectId} pos={followTarget.position}");
     }

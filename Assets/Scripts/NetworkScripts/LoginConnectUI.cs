@@ -211,7 +211,6 @@ public class LobbyConnectUI : MonoBehaviour
                 int teamIdHash = Animator.StringToHash(teamId);
                 int layoutIndex = teamSize <= 8 ? 0 : (teamSize <= 12 ? 1 : 2);
 
-                // مهم: خزني الداتا في GlobalRoomContext
                 GlobalRoomContext.Instance.SetLobbyData(displayName, org, joinCode, teamIdHash, teamSize, layoutIndex);
                 await relay.JoinRoomAndClient(joinCode, displayName, org);
 
