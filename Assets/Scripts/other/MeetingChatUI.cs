@@ -48,7 +48,7 @@ public class MeetingChatUI : MonoBehaviour
 
     private void OnDisable()
     {
-        UIInputBlocker.BlockGameplayInput = false;
+        UIInputBlocker.Release(this);
 
         if (chatToggleButton != null)
             chatToggleButton.onClick.RemoveListener(ToggleChat);
@@ -159,13 +159,14 @@ public class MeetingChatUI : MonoBehaviour
             return;
 
         _isOpen = open;
-        UIInputBlocker.BlockGameplayInput = open;
 
         if (chatWindowRoot != null)
             chatWindowRoot.SetActive(open);
 
         if (open)
         {
+            UIInputBlocker.Acquire(this);
+
             ClearUnread();
             AutoScrollToBottom();
 
@@ -174,6 +175,10 @@ public class MeetingChatUI : MonoBehaviour
                 inputField.ActivateInputField();
                 inputField.Select();
             }
+        }
+        else
+        {
+            UIInputBlocker.Release(this);
         }
     }
 

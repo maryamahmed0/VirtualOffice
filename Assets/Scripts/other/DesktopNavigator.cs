@@ -6,6 +6,9 @@ public class DesktopNavigator : MonoBehaviour
 {
     public enum ViewId { None, People, Tasks }
 
+    [Header("Root")]
+    [SerializeField] private GameObject desktopRoot;
+
     [Header("Views")]
     [SerializeField] private GameObject peopleView;
     [SerializeField] private GameObject tasksView;
@@ -21,12 +24,26 @@ public class DesktopNavigator : MonoBehaviour
 
     private void Awake()
     {
+        if (desktopRoot == null)
+            desktopRoot = gameObject;
+
         if (peopleBtn) peopleBtn.onClick.AddListener(() => NavigateTo(ViewId.People));
         if (tasksBtn) tasksBtn.onClick.AddListener(() => NavigateTo(ViewId.Tasks));
         if (backBtn) backBtn.onClick.AddListener(Back);
-        if (closeBtn) closeBtn.onClick.AddListener(CloseAll);
 
         Show(ViewId.None, pushHistory: false);
+    }
+
+    private void OnEnable()
+    {
+        UIInputBlocker.Acquire(this);
+        history.Clear();
+        Show(ViewId.None, pushHistory: false);
+    }
+
+    private void OnDisable()
+    {
+        UIInputBlocker.Release(this);
     }
 
     private void NavigateTo(ViewId v)
@@ -57,17 +74,19 @@ public class DesktopNavigator : MonoBehaviour
         if (peopleView) peopleView.SetActive(v == ViewId.People);
         if (tasksView) tasksView.SetActive(v == ViewId.Tasks);
 
-        // Back يظهر لو مش None أو فيه history
         if (backBtn) backBtn.gameObject.SetActive(v != ViewId.None || history.Count > 0);
     }
 
-    private void CloseAll()
+    public void CloseFromButton()
     {
-        // يقفل الـUI كله
-        gameObject.SetActive(false);
+        Debug.Log("[DESKTOP NAV] CloseFromButton");
 
-        // reset stack
+        UIInputBlocker.Release(this);
+
         history.Clear();
-        current = ViewId.None;
+        Show(ViewId.None, pushHistory: false);
+
+        if (desktopRoot != null)
+            desktopRoot.SetActive(false);
     }
 }

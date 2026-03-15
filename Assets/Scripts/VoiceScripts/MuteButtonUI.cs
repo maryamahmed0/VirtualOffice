@@ -49,13 +49,18 @@ public class MuteButtonUI : MonoBehaviour
 
         var playerObj = NetworkManager.Singleton.LocalClient.PlayerObject;
 
-        localPresenter = playerObj.GetComponent<PlayerVoicePresenter>();
-        voiceState = playerObj.GetComponent<PlayerVoiceState>();
+        var newPresenter = playerObj.GetComponent<PlayerVoicePresenter>();
+        var newVoiceState = playerObj.GetComponent<PlayerVoiceState>();
+
+        if (voiceState != null)
+            voiceState.IsMicMuted.OnValueChanged -= OnMuteChanged;
+
+        localPresenter = newPresenter;
+        voiceState = newVoiceState;
 
         if (voiceState != null)
         {
             voiceState.IsMicMuted.OnValueChanged += OnMuteChanged;
-
             UpdateButtonUI(voiceState.IsMicMuted.Value);
         }
     }

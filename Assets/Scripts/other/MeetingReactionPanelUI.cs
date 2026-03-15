@@ -47,6 +47,8 @@ public class MeetingReactionsPanelUI : MonoBehaviour
 
     private void OnDisable()
     {
+        UIInputBlocker.Release(this);
+
         if (reactionsToggleButton != null)
             reactionsToggleButton.onClick.RemoveListener(TogglePanel);
 
@@ -122,6 +124,9 @@ public class MeetingReactionsPanelUI : MonoBehaviour
 
         if (reactionsPanelRoot != null)
             reactionsPanelRoot.SetActive(open);
+
+        if (open) UIInputBlocker.Acquire(this);
+        else UIInputBlocker.Release(this);
     }
 
     private void SendReaction(MeetingReactionType reactionType)
