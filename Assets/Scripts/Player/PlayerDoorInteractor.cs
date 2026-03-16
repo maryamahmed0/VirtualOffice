@@ -5,6 +5,18 @@ public class PlayerDoorInteractor : NetworkBehaviour
 {
     private DoorTrigger currentDoor;
 
+    [SerializeField] private PlayerSeatingState seatingState;
+    [SerializeField] private PlayerSeatInteractor seatInteractor;
+
+    private void Awake()
+    {
+        if (seatingState == null)
+            seatingState = GetComponent<PlayerSeatingState>();
+
+        if (seatInteractor == null)
+            seatInteractor = GetComponent<PlayerSeatInteractor>();
+    }
+
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (!IsOwner) return;
@@ -33,6 +45,7 @@ public class PlayerDoorInteractor : NetworkBehaviour
     {
         if (!IsOwner) return;
         if (UIInputBlocker.BlockGameplayInput) return;
+        if (seatingState != null && seatingState.IsSitting) return;
         if (currentDoor == null) return;
 
         Debug.Log($"[DOOR] UseDoor() -> {currentDoor.doorId}");
@@ -43,12 +56,30 @@ public class PlayerDoorInteractor : NetworkBehaviour
     {
         if (!IsOwner) return;
         if (UIInputBlocker.BlockGameplayInput) return;
-        if (currentDoor == null) return;
+        if (Application.isMobilePlatform) return;
 
-        if (!Application.isMobilePlatform && Input.GetKeyDown(KeyCode.F))
+        if (!Input.GetKeyDown(KeyCode.F))
+            return;
+
+        // لو قاعد -> يقوم
+        if (seatingState != null && seatingState.IsSitting)
+        {
+            seatInteractor?.UseSeat();
+            return;
+        }
+
+        // الباب له أولوية
+        if (currentDoor != null)
         {
             Debug.Log($"[DOOR] F pressed -> {currentDoor.doorId}");
             UseDoorServerRpc(currentDoor.doorId);
+            return;
+        }
+
+        // بعده الكرسي لو متاح فعلاً
+        if (seatInteractor != null && seatInteractor.HasUsableSeatInRange)
+        {
+            seatInteractor.UseSeat();
         }
     }
 
@@ -79,6 +110,10 @@ public class PlayerDoorInteractor : NetworkBehaviour
 
         var room = playerObj.GetComponent<NetRoomState>();
         room?.ServerSetZone(door.destinationZone);
+
+        var seatState = playerObj.GetComponent<PlayerSeatingState>();
+        if (seatState != null && seatState.IsSitting)
+            seatState.ServerStandFromCurrentSeat();
 
         Vector3 pos = door.targetSpawnPoint.position;
         var rb = playerObj.GetComponent<Rigidbody2D>();
