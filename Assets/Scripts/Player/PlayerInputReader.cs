@@ -9,10 +9,14 @@ public class PlayerInputReader : NetworkBehaviour
     public Vector2 Move { get; private set; }
     public bool UseMobileOverride { get; private set; }
     private Vector2 mobileMove;
+    private PlayerSeatingState seatingState;
 
     public override void OnNetworkSpawn()
     {
         if (!IsOwner) return;
+
+        if (seatingState == null)
+            seatingState = GetComponent<PlayerSeatingState>();
 
         if (Application.isMobilePlatform && Application.platform != RuntimePlatform.WebGLPlayer)
             return;
@@ -26,7 +30,7 @@ public class PlayerInputReader : NetworkBehaviour
 
     private void OnMove(InputAction.CallbackContext ctx)
     {
-        if (UIInputBlocker.BlockGameplayInput)
+        if (UIInputBlocker.BlockGameplayInput || (seatingState != null && seatingState.IsSitting))
         {
             Move = Vector2.zero;
             return;
@@ -40,7 +44,7 @@ public class PlayerInputReader : NetworkBehaviour
 
     public void SetMoveFromUI(Vector2 v)
     {
-        if (UIInputBlocker.BlockGameplayInput)
+        if (UIInputBlocker.BlockGameplayInput || (seatingState != null && seatingState.IsSitting))
         {
             Move = Vector2.zero;
             return;
@@ -62,7 +66,7 @@ public class PlayerInputReader : NetworkBehaviour
     {
         if (!IsOwner) return;
 
-        if (UIInputBlocker.BlockGameplayInput)
+        if (UIInputBlocker.BlockGameplayInput || (seatingState != null && seatingState.IsSitting))
             Move = Vector2.zero;
     }
 

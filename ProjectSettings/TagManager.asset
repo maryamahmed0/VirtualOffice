@@ -72,12 +72,21 @@ TagManager:
   - name: TopObj
     uniqueID: 1324552773
     locked: 0
-  - name: FrontChair
-    uniqueID: 807546503
-    locked: 0
   - name: Door
     uniqueID: 2989711863
     locked: 0
+  - name: BehindPlayer
+    uniqueID: 2364803651
+    locked: 0
+  - name: FrontChair
+    uniqueID: 807546503
+    locked: 0
   - name: Player
     uniqueID: 3196804757
+    locked: 0
+  - name: AbovePlayer
+    uniqueID: 614346489
+    locked: 0
+  - name: TableObj
+    uniqueID: 1667120373
     locked: 0

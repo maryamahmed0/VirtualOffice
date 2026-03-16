@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 public class MobileActionController : MonoBehaviour
 {
-    public enum ActionType { None, Door, Call }
+    public enum ActionType { None, Door, Seat, Stand, Call }
 
     [Header("UI")]
     [SerializeField] private Button actionBtn;
@@ -19,6 +19,7 @@ public class MobileActionController : MonoBehaviour
 
     private ProximityCallScanner callScanner;
     private PlayerDoorInteractor doorInteractor;
+    private PlayerSeatInteractor seatInteractor;
     private CallController callController;
     private NetRoomState netRoom;
 
@@ -44,6 +45,7 @@ public class MobileActionController : MonoBehaviour
 
         if (callScanner == null) callScanner = lp.GetComponent<ProximityCallScanner>();
         if (doorInteractor == null) doorInteractor = lp.GetComponent<PlayerDoorInteractor>();
+        if (seatInteractor == null) seatInteractor = lp.GetComponent<PlayerSeatInteractor>();
         if (callController == null) callController = lp.GetComponent<CallController>();
         if (netRoom == null) netRoom = lp.GetComponentInParent<NetRoomState>();
     }
@@ -60,14 +62,26 @@ public class MobileActionController : MonoBehaviour
 
         bool inMeeting = (netRoom != null && netRoom.GetZone() == NetRoomState.Zone.Meeting);
         bool inCall = (callController != null && callController.State != CallController.CallState.Idle);
+        bool isSitting = seatInteractor != null && seatInteractor.IsSitting;
 
-        if (doorInteractor != null && doorInteractor.HasDoorInRange)
+        if (doorInteractor != null && doorInteractor.HasDoorInRange && !isSitting)
         {
             SetState(ActionType.Door, "Enter");
             return;
         }
 
-    
+        if (isSitting)
+        {
+            SetState(ActionType.Stand, "Stand");
+            return;
+        }
+
+        if (seatInteractor != null && seatInteractor.HasUsableSeatInRange)
+        {
+            SetState(ActionType.Seat, "Sit");
+            return;
+        }
+
         if (inCall)
         {
             SetState(ActionType.None, "In Call");
@@ -98,6 +112,11 @@ public class MobileActionController : MonoBehaviour
         {
             case ActionType.Door:
                 doorInteractor?.UseDoor();
+                break;
+
+            case ActionType.Seat:
+            case ActionType.Stand:
+                seatInteractor?.UseSeat();
                 break;
 
             case ActionType.Call:
