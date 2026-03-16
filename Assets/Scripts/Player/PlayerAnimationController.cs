@@ -36,6 +36,11 @@ public class PlayerAnimationController : MonoBehaviour
     private static readonly int IsMovingHash = Animator.StringToHash("IsMoving");
     private static readonly int IsSittingHash = Animator.StringToHash("IsSitting");
 
+
+    public void UpdateAnimatorReference()
+    {
+        animator = GetComponentInChildren<Animator>(false);
+    }
     private void Awake()
     {
         animator = GetComponent<Animator>();

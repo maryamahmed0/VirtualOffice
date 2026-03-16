@@ -17,6 +17,9 @@ public class LobbyConnectUI : MonoBehaviour
     [SerializeField] private TMP_InputField teamIdInput;
     [SerializeField] private TMP_InputField teamSizeInput;
 
+    [Header("Avatar (NEW)")]
+    [SerializeField] private TMP_Dropdown genderDropdown; // 0 = Boy (M), 1 = Girl (F)
+
     private RelayConnector relay;
     private bool busy;
     private static string lastPayload;
@@ -28,13 +31,18 @@ public class LobbyConnectUI : MonoBehaviour
         // prefill
         if (teamIdInput != null) teamIdInput.text = PlayerPrefs.GetString("TEAM_ID", "TECH");
         if (teamSizeInput != null) teamSizeInput.text = PlayerPrefs.GetInt("TEAM_SIZE", 8).ToString();
+        if (genderDropdown != null) genderDropdown.value = PlayerPrefs.GetInt("PLAYER_GENDER", 0);
     }
 
-    // payload: name|org|teamId|teamSize
-    private void ApplyConnectionPayload(string playerName, string org, string teamId, int teamSize)
+    // payload: name|org|teamId|teamSize|gender
+    private void ApplyConnectionPayload(string playerName, string org, string teamId, int teamSize, bool isGirl)
     {
         var nm = NetworkManager.Singleton;
-        var payload = $"{playerName}|{org}|{teamId}|{teamSize}";
+
+        // ضفنا الجندر في آخر الـ Payload
+        string genderFlag = isGirl ? "F" : "M";
+        var payload = $"{playerName}|{org}|{teamId}|{teamSize}|{genderFlag}";
+
         byte[] bytes = Encoding.UTF8.GetBytes(payload);
         nm.NetworkConfig.ConnectionData = bytes;
 
@@ -88,12 +96,14 @@ public class LobbyConnectUI : MonoBehaviour
             WebVoiceGate.MarkUserGesture();
             Debug.Log("[WEB] Enter clicked - gesture sent");
         }
+
         // Android mic permission (popup)
         if (Application.platform == RuntimePlatform.Android)
         {
             if (!AndroidMicPermissionGate.HasMicPermission())
                 AndroidMicPermissionGate.RequestMicPermission();
         }
+
         errorText.text = "";
         statusText.text = "Connecting...";
 
@@ -109,6 +119,13 @@ public class LobbyConnectUI : MonoBehaviour
 
         string teamId = SanitizeTeamId(teamIdRaw);
         int teamSize = SanitizeTeamSize(teamSizeRaw);
+
+        // GENDER
+        bool isGirl = false;
+        if (genderDropdown != null)
+        {
+            isGirl = (genderDropdown.value == 1); // بافتراض إن الاختيار الأول (0) ولد، والتاني (1) بنت
+        }
 
         // Validate basic fields
         if (string.IsNullOrWhiteSpace(displayName))
@@ -132,6 +149,7 @@ public class LobbyConnectUI : MonoBehaviour
         PlayerPrefs.SetString("ORG_ID", org);
         PlayerPrefs.SetString("TEAM_ID", teamId);
         PlayerPrefs.SetInt("TEAM_SIZE", teamSize);
+        if (genderDropdown != null) PlayerPrefs.SetInt("PLAYER_GENDER", genderDropdown.value);
         PlayerPrefs.Save();
 
         // Save to session data
@@ -139,6 +157,7 @@ public class LobbyConnectUI : MonoBehaviour
         {
             GameSessionData.Instance.SetUser(displayName, org);
             GameSessionData.Instance.SetTeam(teamId, teamSize);
+            // لو عندك مكان للجندر في GameSessionData ممكن تضيفيه هنا برضه
         }
 
         try
@@ -167,8 +186,8 @@ public class LobbyConnectUI : MonoBehaviour
                 return;
             }
 
-            // apply payload BEFORE starting host/client
-            ApplyConnectionPayload(displayName, org, teamId, teamSize);
+            // apply payload BEFORE starting host/client (ضفنا الجندر هنا)
+            ApplyConnectionPayload(displayName, org, teamId, teamSize, isGirl);
             Debug.Log("[PAYLOAD] FINAL >>>" + lastPayload + "<<<");
 
             if (string.IsNullOrEmpty(joinCode))
@@ -179,6 +198,7 @@ public class LobbyConnectUI : MonoBehaviour
                 int layoutIndex = teamSize <= 8 ? 0 : (teamSize <= 12 ? 1 : 2);
 
                 GlobalRoomContext.Instance.SetLobbyData(displayName, org, joinCode, teamIdHash, teamSize, layoutIndex);
+
                 // Host
                 string code = await relay.CreateRoomAndHost(displayName, org);
 
