@@ -56,6 +56,11 @@ public class CallController : NetworkBehaviour
             return;
         }
 
+        if (Application.platform == RuntimePlatform.WebGLPlayer)
+        {
+            WebVoiceGate.MarkUserGesture();
+        }
+
         otherClientId = targetClientId;
         otherDisplayName = PlayerIdentity.GetName(targetClientId);
 
@@ -69,6 +74,11 @@ public class CallController : NetworkBehaviour
     {
         if (!IsOwner) return;
         if (state != CallState.RingingIn) return;
+
+        if (Application.platform == RuntimePlatform.WebGLPlayer)
+        {
+            WebVoiceGate.MarkUserGesture();
+        }
 
         Debug.Log($"[CALL] AcceptCall by {NetworkManager.Singleton.LocalClientId} other={otherClientId}");
         CallRpcDispatcher.Instance.AcceptCallServerRpc(otherClientId, NetworkManager.Singleton.LocalClientId);
@@ -234,6 +244,18 @@ public class CallController : NetworkBehaviour
             return;
         }
 
+        // 1. هنبلغ السيرفر فوراً إننا وافقنا وبدأنا المحاولة عشان الـ Timeout ميضربش
+        if (NetworkManager.Singleton != null)
+        {
+            CallRpcDispatcher.Instance.PrivateVoiceReadyServerRpc(
+                channel,
+                NetworkManager.Singleton.LocalClientId,
+                otherClientId);
+        }
+
+        OnVoiceStatusChanged?.Invoke("Connecting...");
+
+        // 2. هنبدأ الـ Join الفعلي
         bool ok = await _voiceCoord.StartPrivateCallAsync(channel);
 
         if (myVer != _voiceStartVersion) return;
@@ -242,18 +264,12 @@ public class CallController : NetworkBehaviour
 
         if (ok)
         {
-            OnVoiceStatusChanged?.Invoke("Connecting...");
-
-            if (NetworkManager.Singleton != null)
-            {
-                CallRpcDispatcher.Instance.PrivateVoiceReadyServerRpc(
-                    channel,
-                    NetworkManager.Singleton.LocalClientId,
-                    otherClientId);
-            }
+            // لو نجحنا، هنحدث الـ UI بس
+            OnVoiceStatusChanged?.Invoke("Connected");
         }
         else
         {
+            // لو فشلنا بجد، هنبلغ السيرفر يقفلها
             OnVoiceStatusChanged?.Invoke("Connection failed");
 
             if (otherClientId != 0 && NetworkManager.Singleton != null)

@@ -1,14 +1,14 @@
-//using UnityEngine;
+using UnityEngine;
 
-//public class MobileControlsEnabler : MonoBehaviour
-//{
-//    [SerializeField] private GameObject mobileControlsRoot;
+public class MobileControlsEnabler : MonoBehaviour
+{
+    [SerializeField] private GameObject mobileControlsRoot;
 
-//    private void Awake()
-//    {
-//        if (mobileControlsRoot == null)
-//            mobileControlsRoot = gameObject;
+    private void Awake()
+    {
+        if (mobileControlsRoot == null)
+            mobileControlsRoot = gameObject;
 
-//        mobileControlsRoot.SetActive(Application.isMobilePlatform);
-//    }
-//}
+        mobileControlsRoot.SetActive(Application.isMobilePlatform);
+    }
+}

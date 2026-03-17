@@ -7,7 +7,7 @@ public class CallRpcDispatcher : NetworkBehaviour
 {
     public static CallRpcDispatcher Instance { get; private set; }
 
-    [SerializeField] private float privateVoiceReadyTimeout = 10f;
+    [SerializeField] private float privateVoiceReadyTimeout = 20f;
 
     private class PrivateVoiceSession
     {
@@ -139,8 +139,7 @@ public class CallRpcDispatcher : NetworkBehaviour
         string callerName = GetNameOnServer(callerClientId);
         string calleeName = GetNameOnServer(calleeClientId);
 
-        string channel =
-            $"P_{Mathf.Min((int)callerClientId, (int)calleeClientId)}_{Mathf.Max((int)callerClientId, (int)calleeClientId)}_{UnityEngine.Random.Range(1000, 9999)}";
+        string channel = $"P-{Mathf.Min((int)callerClientId, (int)calleeClientId)}-{Mathf.Max((int)callerClientId, (int)calleeClientId)}-{UnityEngine.Random.Range(1000, 9999)}";
 
         if (_privateVoiceSessions.TryGetValue(channel, out var existing))
         {

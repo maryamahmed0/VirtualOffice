@@ -46,7 +46,6 @@ public class VoiceCoordinator : MonoBehaviour
 
     private void TryHookLocalZone()
     {
-     
         if (PlayerRoomState.LocalInstance == null) return;
 
         localRoomState = PlayerRoomState.LocalInstance.GetComponentInParent<NetRoomState>();
@@ -68,27 +67,49 @@ public class VoiceCoordinator : MonoBehaviour
 
         voiceOpVersion++;
 
+        Debug.Log($"[VOICECOORD] OnZoneChanged triggered. Zone={zone}, inMeetingRoom={inMeetingRoom}");
+
         if (inMeetingRoom && autoJoinMeeting)
         {
+            Debug.Log("[VOICECOORD] Triggering EnsureMeetingVoiceAsync...");
             _ = EnsureMeetingVoiceAsync(voiceOpVersion);
         }
         else
         {
-
+            Debug.Log("[VOICECOORD] Triggering LeaveMeetingAsync...");
             if (string.IsNullOrEmpty(activePrivateChannel))
                 _ = LeaveMeetingAsync(voiceOpVersion);
+            else
+                Debug.Log("[VOICECOORD] Skipped LeaveMeetingAsync because a private call is active.");
         }
     }
 
     private async Task EnsureMeetingVoiceAsync(int v)
     {
-        if (provider == null) return;
-        if (!string.IsNullOrEmpty(activePrivateChannel)) return;
+        Debug.Log($"[VOICECOORD] EnsureMeetingVoiceAsync Started. Version={v}");
+
+        if (provider == null)
+        {
+            Debug.LogWarning("[VOICECOORD] Aborted: Provider is NULL!");
+            return;
+        }
+
+        if (!string.IsNullOrEmpty(activePrivateChannel))
+        {
+            Debug.LogWarning($"[VOICECOORD] Aborted: Currently in a private call ({activePrivateChannel}). Cannot join meeting voice.");
+            return;
+        }
 
         string name = ResolveName();
         string channel = ResolveMeetingChannel();
 
-        if (activeMeetingChannel == channel) return;
+        Debug.Log($"[VOICECOORD] Target Meeting Channel: {channel}");
+
+        if (activeMeetingChannel == channel)
+        {
+            Debug.Log("[VOICECOORD] Aborted: Already in the target meeting channel.");
+            return;
+        }
 
         if (Application.platform == RuntimePlatform.Android)
         {
@@ -96,21 +117,34 @@ public class VoiceCoordinator : MonoBehaviour
             {
                 AndroidMicPermissionGate.RequestMicPermission();
                 Debug.LogWarning("[VOICECOORD] Requested mic permission. Waiting for user...");
-                return; 
+                return;
             }
         }
 
         try
         {
+            Debug.Log("[VOICECOORD] Awaiting EnsureReadyAsync (Login)...");
             await provider.EnsureReadyAsync(name);
-            if (v != voiceOpVersion || !inMeetingRoom) return;
+            Debug.Log($"[VOICECOORD] EnsureReadyAsync done. Provider IsLoggedIn = {provider.IsLoggedIn}");
 
+            if (v != voiceOpVersion || !inMeetingRoom)
+            {
+                Debug.LogWarning("[VOICECOORD] Aborted: Zone or version changed while logging in.");
+                return;
+            }
+
+            Debug.Log("[VOICECOORD] Awaiting LeaveCurrentAsync...");
             await provider.LeaveCurrentAsync();
             if (v != voiceOpVersion || !inMeetingRoom) return;
 
+            Debug.Log($"[VOICECOORD] Awaiting JoinAsync for channel: {channel}...");
             await provider.JoinAsync(channel);
             if (v != voiceOpVersion || !inMeetingRoom) return;
 
+            if(VoiceManager.Instance != null)
+            {
+                await VoiceManager.Instance.RefreshAudioStreamAsync();
+            }
             provider.SetMute(false);
 
             activeMeetingChannel = channel;
@@ -125,12 +159,17 @@ public class VoiceCoordinator : MonoBehaviour
     private async Task LeaveMeetingAsync(int v)
     {
         if (provider == null) return;
-        if (string.IsNullOrEmpty(activeMeetingChannel)) { await provider.LeaveCurrentAsync(); return; }
+        if (string.IsNullOrEmpty(activeMeetingChannel))
+        {
+            await provider.LeaveCurrentAsync();
+            return;
+        }
 
         string old = activeMeetingChannel;
 
         try
         {
+            Debug.Log($"[VOICECOORD] Leaving meeting channel: {old}");
             await provider.LeaveAsync(old);
             if (v != voiceOpVersion) return;
 
@@ -167,6 +206,7 @@ public class VoiceCoordinator : MonoBehaviour
 
         try
         {
+            Debug.Log($"[VOICECOORD] Starting Private Call: {privateChannel}");
             await provider.EnsureReadyAsync(name);
 
             if (!string.IsNullOrEmpty(activeMeetingChannel))
@@ -174,6 +214,11 @@ public class VoiceCoordinator : MonoBehaviour
 
             await provider.LeaveCurrentAsync();
             await provider.JoinAsync(privateChannel);
+
+            if (VoiceManager.Instance != null)
+            {
+                await VoiceManager.Instance.RefreshAudioStreamAsync();
+            }
 
             provider.SetMute(false);
 
@@ -183,9 +228,8 @@ public class VoiceCoordinator : MonoBehaviour
         catch (System.Exception e)
         {
             Debug.LogError("[VOICECOORD] StartPrivateCall FAILED ❌ " + e);
-            activePrivateChannel = null;
+            activePrivateChannel = null; // تنظيف القناة في حالة الفشل عشان متقفلش علينا الميتنج
 
-     
             if (inMeetingRoom && autoJoinMeeting)
                 await EnsureMeetingVoiceAsync(voiceOpVersion);
 
@@ -199,10 +243,11 @@ public class VoiceCoordinator : MonoBehaviour
         if (string.IsNullOrEmpty(activePrivateChannel)) return;
 
         string old = activePrivateChannel;
-        activePrivateChannel = null;
+        activePrivateChannel = null; // تنظيف فوري للقناة
 
         try
         {
+            Debug.Log($"[VOICECOORD] Ending Private Call: {old}");
             await provider.LeaveAsync(old);
             Debug.Log("[VOICECOORD] Private voice OFF ✅ " + old);
         }

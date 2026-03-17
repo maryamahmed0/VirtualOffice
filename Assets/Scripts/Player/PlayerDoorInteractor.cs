@@ -71,6 +71,11 @@ public class PlayerDoorInteractor : NetworkBehaviour
         // الباب له أولوية
         if (currentDoor != null)
         {
+            if (Application.platform == RuntimePlatform.WebGLPlayer)
+            {
+                WebVoiceGate.MarkUserGesture();
+            }
+
             Debug.Log($"[DOOR] F pressed -> {currentDoor.doorId}");
             UseDoorServerRpc(currentDoor.doorId);
             return;

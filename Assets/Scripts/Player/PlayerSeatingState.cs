@@ -51,8 +51,6 @@ public class PlayerSeatingState : NetworkBehaviour
             return;
 
         var seat = CurrentSeat;
-        if (seat != null)
-            seat.ServerRelease(OwnerClientId);
 
         isSitting.Value = false;
         currentFacing.Value = (int)SeatPoint.SeatFacing.None;
