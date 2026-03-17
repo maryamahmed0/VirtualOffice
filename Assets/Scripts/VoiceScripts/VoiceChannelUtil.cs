@@ -3,7 +3,6 @@ using UnityEngine;
 
 public static class VoiceChannelUtil
 {
-   
     public static string Build(string org, string joinCode)
     {
         org = Sanitize(org);
@@ -12,7 +11,8 @@ public static class VoiceChannelUtil
         if (string.IsNullOrEmpty(org)) org = "ORG";
         if (string.IsNullOrEmpty(joinCode)) joinCode = "ROOM";
 
-        return $"{org}_{joinCode}";
+        // 👉 استخدمنا Dash هنا
+        return $"{org}-{joinCode}";
     }
 
     private static string Sanitize(string s)
@@ -23,7 +23,8 @@ public static class VoiceChannelUtil
         foreach (char c in s.Trim())
         {
             if (char.IsLetterOrDigit(c)) sb.Append(char.ToUpperInvariant(c));
-            else if (c == '_' || c == '-') sb.Append('_');
+            // 👉 حولنا أي مسافة أو Underscore لـ Dash مسموح بيها
+            else if (c == '_' || c == '-') sb.Append('-');
         }
 
         string clean = sb.ToString();

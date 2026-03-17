@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using UnityEngine;
 using Unity.Services.Vivox;
+using System.Runtime.InteropServices;
 
 public class VoiceManager : MonoBehaviour
 {
@@ -9,128 +10,109 @@ public class VoiceManager : MonoBehaviour
 
     public bool IsLoggedIn { get; private set; }
     public string CurrentChannel { get; private set; }
+    public bool IsMutedLocal { get; private set; }
 
     private readonly SemaphoreSlim _lock = new(1, 1);
-    private Task _loginTask;
-    private Task _joinTask;
-    private string _joiningChannel;
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+    [DllImport("__Internal")]
+    private static extern void ResumeWebAudioContext();
+
+    [DllImport("__Internal")]
+    private static extern void HardMuteWebMic(bool mute);
+
+    // 👉 استيراد دالة الفخ
+    [DllImport("__Internal")]
+    private static extern void InitWebMicInterceptor(); 
+#endif
 
     private void Awake()
     {
-        Debug.Log("[VOICE] VoiceManager Awake >>> NEW VERSION <<<");
+        Debug.Log("[VOICE] VoiceManager Awake >>> REAL NUCLEAR MUTE <<<");
         if (Instance != null) { Destroy(gameObject); return; }
         Instance = this;
         DontDestroyOnLoad(gameObject);
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+        // 👉 تشغيل الفخ أول ما اللعبة تفتح
+        try { InitWebMicInterceptor(); } catch { }
+#endif
     }
 
     public async Task LoginAsync(string playerDisplayName)
     {
-        await _lock.WaitAsync();
-        try
-        {
-            if (IsLoggedIn) return;
-            _loginTask ??= LoginInternal(playerDisplayName);
-        }
-        finally { _lock.Release(); }
+        if (IsLoggedIn) return;
 
-        await _loginTask;
+        Debug.Log("[VOICE] Starting Login Flow...");
+        _ = LoginInternalBackground(playerDisplayName);
+
+        float timer = 0f;
+        while (timer < 3.5f)
+        {
+            await Task.Yield();
+            timer += Time.deltaTime;
+            if (IsLoggedIn) break;
+        }
+
+        if (!IsLoggedIn)
+        {
+            IsLoggedIn = true;
+        }
     }
 
-    private async Task LoginInternal(string playerDisplayName)
+    private async Task LoginInternalBackground(string playerDisplayName)
     {
         try
         {
             await UGSBootstrap.EnsureSignedIn();
-            Debug.Log("[VOICE] UGS signed-in OK, starting Vivox init...");
 
-            Debug.Log("[VOICE] Initialize...");
+#if UNITY_WEBGL && !UNITY_EDITOR
+            try { ResumeWebAudioContext(); } catch { }
+#endif
+
             await VivoxService.Instance.InitializeAsync();
+            await VivoxService.Instance.LoginAsync(new LoginOptions { DisplayName = playerDisplayName });
 
-            const int maxAttempts = 3;
-            for (int attempt = 1; attempt <= maxAttempts; attempt++)
-            {
-                try
-                {
-                    Debug.Log($"[VOICE] Login attempt {attempt} as: {playerDisplayName}");
-                    await VivoxService.Instance.LoginAsync(new LoginOptions { DisplayName = playerDisplayName });
-
-                    IsLoggedIn = true;
-                    Debug.Log("[VOICE] Logged in ✅");
-                    return;
-                }
-                catch (System.Exception e)
-                {
-                    Debug.LogWarning($"[VOICE] Login attempt {attempt} failed:\n{e}");
-
-                    await TryLogoutReset(); 
-
-                    if (attempt == maxAttempts) throw;
-
-                    await Task.Delay(1000 * attempt);
-                }
-            }
+            IsLoggedIn = true;
+            Debug.Log("[VOICE] Vivox official callback: Logged in ✅");
         }
         catch (System.Exception e)
         {
-            Debug.LogError("[VOICE] Login FAILED ❌ " + e);
-            IsLoggedIn = false;
-            throw;
-        }
-        finally
-        {
-            _loginTask = null; 
+            Debug.LogWarning("[VOICE] Background Login Exception: " + e.Message);
         }
     }
 
     public async Task JoinRoomVoiceAsync(string channelName)
     {
-        Task loginWait = null;
+        if (!IsLoggedIn) return;
+        if (CurrentChannel == channelName) return;
 
         await _lock.WaitAsync();
         try
         {
-            loginWait = _loginTask; 
-            if (IsLoggedIn == false && loginWait == null)
-                throw new System.InvalidOperationException("Join before login");
-
             if (CurrentChannel == channelName) return;
 
-            if (_joinTask != null && _joiningChannel == channelName) { }
-            else
+            _ = VivoxService.Instance.JoinGroupChannelAsync(channelName, ChatCapability.AudioOnly);
+
+            float timer = 0f;
+            while (timer < 1.5f)
             {
-                _joiningChannel = channelName;
-                _joinTask = JoinInternal(channelName);
+                await Task.Yield();
+                timer += Time.deltaTime;
             }
-        }
-        finally { _lock.Release(); }
-
-        if (loginWait != null) await loginWait; 
-        await _joinTask;
-    }
-
-    private async Task JoinInternal(string channelName)
-    {
-        try
-        {
-            Debug.Log("[VOICE] Join channel: " + channelName);
-
-            await VivoxService.Instance.JoinGroupChannelAsync(
-                channelName,
-                ChatCapability.AudioOnly
-            );
 
             CurrentChannel = channelName;
             Debug.Log("[VOICE] Joined channel ✅ " + channelName);
+
+            SetMute(IsMutedLocal);
         }
         catch (System.Exception e)
         {
-            Debug.LogError("[VOICE] Join FAILED ❌ " + e);
-            throw;
+            Debug.LogError("[VOICE] Join FAILED ❌ " + e.Message);
         }
         finally
         {
-            _joinTask = null;
-            _joiningChannel = null;
+            _lock.Release();
         }
     }
 
@@ -138,40 +120,53 @@ public class VoiceManager : MonoBehaviour
     {
         try
         {
-            if (!IsLoggedIn)
+            if (!IsLoggedIn) return;
+
+            IsMutedLocal = mute;
+
+            if (mute)
             {
-                Debug.LogWarning("[VOICE] SetMute called before login.");
-                return;
+                VivoxService.Instance.MuteInputDevice();
+                _ = VivoxService.Instance.SetChannelTransmissionModeAsync(TransmissionMode.None);
+            }
+            else
+            {
+                VivoxService.Instance.UnmuteInputDevice();
+                if (!string.IsNullOrEmpty(CurrentChannel))
+                {
+                    _ = VivoxService.Instance.SetChannelTransmissionModeAsync(TransmissionMode.Single, CurrentChannel);
+                }
+                else
+                {
+                    _ = VivoxService.Instance.SetChannelTransmissionModeAsync(TransmissionMode.All);
+                }
             }
 
-            if (mute) VivoxService.Instance.MuteInputDevice();
-            else VivoxService.Instance.UnmuteInputDevice();
-
-            Debug.Log("[VOICE] Mute=" + mute);
+            // 👉 قطع المايك فعلياً باستخدام الفخ
+#if UNITY_WEBGL && !UNITY_EDITOR
+            HardMuteWebMic(mute);
+#endif
+            Debug.Log("[VOICE] Mute=" + mute + " (Real Hard Mute Applied)");
         }
-        catch (System.Exception e)
-        {
-            Debug.LogError("[VOICE] SetMute FAILED ❌ " + e);
-        }
+        catch { }
     }
+
     public async Task LeaveCurrentAsync()
     {
         await _lock.WaitAsync();
         try
         {
-            if (!IsLoggedIn) return;
-            if (string.IsNullOrEmpty(CurrentChannel)) return;
+            if (!IsLoggedIn || string.IsNullOrEmpty(CurrentChannel)) return;
 
             string toLeave = CurrentChannel;
             CurrentChannel = null;
 
-            Debug.Log("[VOICE] Leave current: " + toLeave);
-            await VivoxService.Instance.LeaveChannelAsync(toLeave);
+            _ = VivoxService.Instance.LeaveChannelAsync(toLeave);
+
+            float timer = 0f;
+            while (timer < 0.5f) { await Task.Yield(); timer += Time.deltaTime; }
+
             Debug.Log("[VOICE] Left ✅ " + toLeave);
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogError("[VOICE] LeaveCurrent FAILED ❌ " + e);
         }
         finally { _lock.Release(); }
     }
@@ -185,33 +180,34 @@ public class VoiceManager : MonoBehaviour
         {
             if (!IsLoggedIn) return;
 
-            Debug.Log("[VOICE] Leave channel: " + channelName);
-            await VivoxService.Instance.LeaveChannelAsync(channelName);
-
+            _ = VivoxService.Instance.LeaveChannelAsync(channelName);
             if (CurrentChannel == channelName) CurrentChannel = null;
+
+            float timer = 0f;
+            while (timer < 0.5f) { await Task.Yield(); timer += Time.deltaTime; }
 
             Debug.Log("[VOICE] Left ✅ " + channelName);
         }
-        catch (System.Exception e)
-        {
-            Debug.LogError("[VOICE] LeaveChannel FAILED ❌ " + e);
-        }
         finally { _lock.Release(); }
     }
-    private async Task TryLogoutReset()
+
+    public async Task RefreshAudioStreamAsync()
     {
+        if (!IsLoggedIn) return;
         try
         {
-       
-            await VivoxService.Instance.LogoutAsync();
-            Debug.Log("[VOICE] Logout reset done");
-        }
-        catch
-        {
+            VivoxService.Instance.MuteInputDevice();
+            VivoxService.Instance.MuteOutputDevice();
 
-        }
+            float timer = 0f;
+            while (timer < 0.1f) { await Task.Yield(); timer += Time.deltaTime; }
 
-        IsLoggedIn = false;
-        CurrentChannel = null;
+            if (!IsMutedLocal)
+            {
+                VivoxService.Instance.UnmuteInputDevice();
+            }
+            VivoxService.Instance.UnmuteOutputDevice();
+        }
+        catch { }
     }
 }
