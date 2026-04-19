@@ -7,7 +7,7 @@ public class TeamRoomLayoutVisuals : MonoBehaviour
     [SerializeField] private GameObject layoutLarge;
 
     private PlayerTeamIdentity localTeam;
-    private NetRoomState localRoom; // عندك موجود لتحديد Zone (TeamRoom/Lobby/Meeting)
+    private NetRoomState localRoom; 
 
     private void OnEnable()
     {

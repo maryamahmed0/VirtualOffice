@@ -44,7 +44,7 @@ public class PlayerRoomState : NetworkBehaviour
         if (!IsOwner) return;
 
         LocalInstance = this;
-        Debug.Log("[ROOM] Local PlayerRoomState ready ✅");
+        Debug.Log("[ROOM] Local PlayerRoomState ready ");
 
         _ignoreUntil = Time.time + ignoreTriggersFor;
 

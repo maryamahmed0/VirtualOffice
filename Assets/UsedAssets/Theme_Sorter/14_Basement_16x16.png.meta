@@ -1004,6 +1004,510 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: 14_Basement_16x16_42
+      rect:
+        serializedVersion: 2
+        x: 7
+        y: 553
+        width: 32
+        height: 52
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7c33a3295f7c1e84d9d999377177fe5f
+      internalID: 1327318808
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 14_Basement_16x16_43
+      rect:
+        serializedVersion: 2
+        x: 55
+        y: 560
+        width: 33
+        height: 45
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: dcc337f92ed8367409460838243d2462
+      internalID: 1452257489
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 14_Basement_16x16_44
+      rect:
+        serializedVersion: 2
+        x: 55
+        y: 512
+        width: 33
+        height: 45
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bb1a586414efd3848be4c2a00eda6357
+      internalID: 523668326
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 14_Basement_16x16_45
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 480
+        width: 8
+        height: 11
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 60bd72d4aa07d1d42a59da5a0f5f143d
+      internalID: -14722482
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 14_Basement_16x16_46
+      rect:
+        serializedVersion: 2
+        x: 25
+        y: 480
+        width: 4
+        height: 4
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f090fcda2e10c6f4fb4a1428cbed7065
+      internalID: -2043332778
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 14_Basement_16x16_47
+      rect:
+        serializedVersion: 2
+        x: 89
+        y: 470
+        width: 7
+        height: 10
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3a73d2446182b07408f13c0f1b648cac
+      internalID: 1397575112
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 14_Basement_16x16_48
+      rect:
+        serializedVersion: 2
+        x: 7
+        y: 420
+        width: 34
+        height: 49
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e00a6ec539e201a40ab24aa2dcce0a41
+      internalID: -1492341120
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 14_Basement_16x16_49
+      rect:
+        serializedVersion: 2
+        x: 72
+        y: 305
+        width: 48
+        height: 39
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: efe5de312b04a234c8022e94723a7f30
+      internalID: 1868100623
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 14_Basement_16x16_50
+      rect:
+        serializedVersion: 2
+        x: 72
+        y: 353
+        width: 48
+        height: 38
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 92d7249def5c6214e94837370b8c6bda
+      internalID: 1811024269
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 14_Basement_16x16_51
+      rect:
+        serializedVersion: 2
+        x: 17
+        y: 369
+        width: 13
+        height: 14
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5cfba8862b730a3469fda8dcdd3afd98
+      internalID: -1392709936
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 14_Basement_16x16_52
+      rect:
+        serializedVersion: 2
+        x: 50
+        y: 385
+        width: 13
+        height: 33
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9f73a85004c71f642bd7e738ba54881f
+      internalID: 1903260892
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 14_Basement_16x16_53
+      rect:
+        serializedVersion: 2
+        x: 44
+        y: 370
+        width: 20
+        height: 13
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 917721c9d4685b945b134e91f4fad83e
+      internalID: -924294282
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 14_Basement_16x16_54
+      rect:
+        serializedVersion: 2
+        x: 144
+        y: 49
+        width: 64
+        height: 46
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1f8f9ff9f4cfe1a4a81c012a55be8b17
+      internalID: 2095182229
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 14_Basement_16x16_55
+      rect:
+        serializedVersion: 2
+        x: 86
+        y: 92
+        width: 20
+        height: 10
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3cc1f450855283143bcce92e6f27d500
+      internalID: -1322513674
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 14_Basement_16x16_56
+      rect:
+        serializedVersion: 2
+        x: 116
+        y: 92
+        width: 9
+        height: 10
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 277845cfec8df494f8c27789286bbcf0
+      internalID: 659671165
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 14_Basement_16x16_57
+      rect:
+        serializedVersion: 2
+        x: 131
+        y: 92
+        width: 9
+        height: 10
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0016904d865cecd4baf492f10f41582e
+      internalID: 1258789623
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 14_Basement_16x16_58
+      rect:
+        serializedVersion: 2
+        x: 86
+        y: 60
+        width: 20
+        height: 10
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6bf5f6a1ca9487a4a88993bab665cb5c
+      internalID: -1126242549
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 14_Basement_16x16_59
+      rect:
+        serializedVersion: 2
+        x: 116
+        y: 60
+        width: 9
+        height: 10
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 143476bcda3ed084b84def435dc4fea0
+      internalID: 116949306
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 14_Basement_16x16_60
+      rect:
+        serializedVersion: 2
+        x: 131
+        y: 60
+        width: 9
+        height: 10
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e25b2abe664161f448561dd1d2315c54
+      internalID: -745811383
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 14_Basement_16x16_61
+      rect:
+        serializedVersion: 2
+        x: 138
+        y: 374
+        width: 12
+        height: 20
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 31b4b4a9897b40b45afc1e02c08f0368
+      internalID: 126203714
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 14_Basement_16x16_62
+      rect:
+        serializedVersion: 2
+        x: 138
+        y: 342
+        width: 12
+        height: 21
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 18c1971283afb274681ccd93ed0671ac
+      internalID: 1104113685
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 14_Basement_16x16_63
+      rect:
+        serializedVersion: 2
+        x: 20
+        y: 768
+        width: 25
+        height: 24
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0d747096baee94843ad7402e7350621c
+      internalID: -2146362085
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 14_Basement_16x16_64
+      rect:
+        serializedVersion: 2
+        x: 83
+        y: 30
+        width: 12
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ed2b52d90c820fc45b9169c0307dc2dc
+      internalID: 470970812
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 14_Basement_16x16_65
+      rect:
+        serializedVersion: 2
+        x: 242
+        y: 714
+        width: 11
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b6f42258a201f114a8f80f9d1e0ac27e
+      internalID: 1090355182
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     physicsShape: []
     bones: []
@@ -1052,8 +1556,32 @@ TextureImporter:
       14_Basement_16x16_4: -282888161
       14_Basement_16x16_40: 1601492278
       14_Basement_16x16_41: -829424263
+      14_Basement_16x16_42: 1327318808
+      14_Basement_16x16_43: 1452257489
+      14_Basement_16x16_44: 523668326
+      14_Basement_16x16_45: -14722482
+      14_Basement_16x16_46: -2043332778
+      14_Basement_16x16_47: 1397575112
+      14_Basement_16x16_48: -1492341120
+      14_Basement_16x16_49: 1868100623
       14_Basement_16x16_5: 1312294014
+      14_Basement_16x16_50: 1811024269
+      14_Basement_16x16_51: -1392709936
+      14_Basement_16x16_52: 1903260892
+      14_Basement_16x16_53: -924294282
+      14_Basement_16x16_54: 2095182229
+      14_Basement_16x16_55: -1322513674
+      14_Basement_16x16_56: 659671165
+      14_Basement_16x16_57: 1258789623
+      14_Basement_16x16_58: -1126242549
+      14_Basement_16x16_59: 116949306
       14_Basement_16x16_6: -860389995
+      14_Basement_16x16_60: -745811383
+      14_Basement_16x16_61: 126203714
+      14_Basement_16x16_62: 1104113685
+      14_Basement_16x16_63: -2146362085
+      14_Basement_16x16_64: 470970812
+      14_Basement_16x16_65: 1090355182
       14_Basement_16x16_7: -486071671
       14_Basement_16x16_8: 1150507050
       14_Basement_16x16_9: 773756449

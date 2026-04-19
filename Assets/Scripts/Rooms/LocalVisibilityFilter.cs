@@ -17,14 +17,13 @@ public class LocalVisibilityFilter : MonoBehaviour
 
     private IEnumerator Boot()
     {
-        // استنى لحد ما Local player يبقى موجود
+
         while (PlayerRoomState.LocalInstance == null)
             yield return null;
 
         localRoom = PlayerRoomState.LocalInstance.GetComponentInParent<NetRoomState>();
         localTeam = PlayerRoomState.LocalInstance.GetComponentInParent<PlayerTeamIdentity>();
 
-        // refresher دوري (بسيط ومضمون)
         StartCoroutine(RefreshLoop());
     }
 
@@ -51,12 +50,12 @@ public class LocalVisibilityFilter : MonoBehaviour
             var no = kvp.Value;
             if (no == null) continue;
 
-            // فلترة على Player objects بس: لازم يبقى عليه المكونين دول
+     
             var r = no.GetComponent<NetRoomState>();
             var t = no.GetComponent<PlayerTeamIdentity>();
             if (r == null || t == null) continue;
 
-            // متخبيش نفسك
+   
             if (no.OwnerClientId == localId)
             {
                 SetVisible(no.gameObject, true);
@@ -74,13 +73,13 @@ public class LocalVisibilityFilter : MonoBehaviour
         bool localInTeam = localR.GetZone() == NetRoomState.Zone.TeamRoom;
         bool otherInTeam = otherR.GetZone() == NetRoomState.Zone.TeamRoom;
 
-        // الاتنين برّه TeamRoom
+
         if (!localInTeam && !otherInTeam) return true;
 
-        // واحد جوّه وواحد برّه
+
         if (localInTeam != otherInTeam) return false;
 
-        // الاتنين جوّه TeamRoom -> نفس التيم
+
         return localT.TeamIdHash.Value == otherT.TeamIdHash.Value;
     }
 
@@ -92,11 +91,9 @@ public class LocalVisibilityFilter : MonoBehaviour
         foreach (var r in root.GetComponentsInChildren<Renderer>(true))
             r.enabled = on;
 
-        // Tilemaps لو عندك حاجة متفرعة (غالباً مش هتكون في player)
         foreach (var tr in root.GetComponentsInChildren<UnityEngine.Tilemaps.TilemapRenderer>(true))
             tr.enabled = on;
 
-        // UI فوق الرأس (Canvas)
         foreach (var c in root.GetComponentsInChildren<Canvas>(true))
             c.enabled = on;
     }
@@ -112,7 +109,6 @@ public class LocalVisibilityFilter : MonoBehaviour
         var otherT = targetPlayerRoot.GetComponentInParent<PlayerTeamIdentity>();
         if (otherR == null || otherT == null) return true;
 
-        // ما تخبيش نفسك
         if (NetworkManager.Singleton != null)
         {
             var no = targetPlayerRoot.GetComponentInParent<NetworkObject>();

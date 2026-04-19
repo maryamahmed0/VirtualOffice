@@ -9,7 +9,6 @@ public static class WebVoiceGate
     [DllImport("__Internal")] private static extern void ResumeWebAudioContext();
 #endif
 
-    // هننادي على الدالة دي في أي زرار اللاعب بيدوس عليه له علاقة بالصوت
     public static void MarkUserGesture()
     {
         HasUserGesture = true;

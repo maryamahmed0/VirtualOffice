@@ -64,6 +64,9 @@ public class PeopleRowUI : MonoBehaviour
         NetRoomState.Zone.Lobby => "Lobby",
         NetRoomState.Zone.TeamRoom => "TeamRoom",
         NetRoomState.Zone.Meeting => "Meeting",
+        NetRoomState.Zone.Breakoom => "BreakRoom", 
+        NetRoomState.Zone.Wc => "Wc", 
+        NetRoomState.Zone.Kitchen => "Kitchen",
         _ => z.ToString()
     };
 

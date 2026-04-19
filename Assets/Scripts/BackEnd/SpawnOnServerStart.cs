@@ -23,7 +23,7 @@ public class SpawnOnServerStart : MonoBehaviour
         {
             no.Spawn();
             spawned = true;
-            Debug.Log("[NET] RpcDispatcher spawned ✅");
+            Debug.Log("[NET] RpcDispatcher spawned ");
         }
         else if (no.IsSpawned)
         {

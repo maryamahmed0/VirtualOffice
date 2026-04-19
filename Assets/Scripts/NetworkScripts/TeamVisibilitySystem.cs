@@ -66,7 +66,6 @@ public class TeamVisibilitySystem : MonoBehaviour
         var nm = NetworkManager.Singleton;
         if (nm == null || !nm.IsServer) return;
 
-        // PlayerObjects (targets)
         var targets = new List<NetworkObject>();
         foreach (var kvp in nm.ConnectedClients)
         {

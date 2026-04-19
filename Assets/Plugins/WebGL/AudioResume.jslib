@@ -1,52 +1,118 @@
 mergeInto(LibraryManager.library, {
-    // 🌟 الفخ اللي بيصطاد مايك Vivox أول ما يشتغل (كودك الأصلي)
+
     InitWebMicInterceptor: function() {
         if (window.micInterceptorInitialized) return;
         window.micInterceptorInitialized = true;
-        window.activeAudioStreams = []; // الخزنة اللي هنشيل فيها المايكات
 
-        // 1. صيد المايك بتاعك
+        window.activeAudioStreams = [];
+        window.vivoxAudioElements = [];
+
+        // 🎤 Intercept mic (outgoing)
         var origGetUserMedia = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
         navigator.mediaDevices.getUserMedia = function(constraints) {
             return origGetUserMedia(constraints).then(function(stream) {
                 if (constraints && constraints.audio) {
                     window.activeAudioStreams.push(stream);
-                    console.log("[WebAudio] Intercepted Vivox Audio Stream! 🎣");
+                    console.log("[WebAudio] 🎤 Mic intercepted! tracks=" + stream.getAudioTracks().length);
                 }
                 return stream;
             });
         };
-        console.log("[WebAudio] Mic Interceptor Installed ✅");
 
-        // 2. 🌟 شبكة صيد الصوت اللي جاي من الناس التانية (عشان نحل مشكلتك الوحيدة)
-        window.vivoxAudioElements = [];
-        var originalPlay = HTMLAudioElement.prototype.play;
-        HTMLAudioElement.prototype.play = function() {
-            if (window.vivoxAudioElements.indexOf(this) === -1) {
-                window.vivoxAudioElements.push(this);
-                console.log("[WebAudio] Caught Vivox Incoming Audio! 🕸️");
+        // 🎧 Intercept audio elements (incoming)
+        var origCreateElement = document.createElement.bind(document);
+        document.createElement = function(tagName) {
+            var el = origCreateElement(tagName);
+
+            if (typeof tagName === 'string' && tagName.toLowerCase() === 'audio') {
+                console.log("[WebAudio] 🎧 Audio element created!");
+
+                el.autoplay = true;
+                el.setAttribute('playsinline', '');
+                el.muted = false;
+                el.volume = 1.0;
+
+                window.vivoxAudioElements.push(el);
+
+                // ✅ حط العنصر في الـ DOM عشان المتصفح يشتغل معاه
+                el.style.position = 'fixed';
+                el.style.left = '-9999px';
+                el.style.top = '-9999px';
+                el.style.width = '1px';
+                el.style.height = '1px';
+                document.body.appendChild(el);
+
+                // ✅ لما الـ track يبقى unmuted، شغله
+                el.addEventListener('loadedmetadata', function() {
+                    console.log("[WebAudio] metadata loaded! readyState=" + el.readyState);
+                    el.muted = false;
+                    el.volume = 1.0;
+                    el.play().catch(function(e) {
+                        console.warn("[WebAudio] play on metadata failed:", e.message);
+                    });
+                });
+
+                el.addEventListener('canplay', function() {
+                    el.muted = false;
+                    el.volume = 1.0;
+                    el.play().catch(function(e) {});
+                });
+
+                el.addEventListener('playing', function() {
+                    console.log("[WebAudio] 🔊 PLAYING! readyState=" + el.readyState + " ← AUDIO FLOWING ✅");
+                });
+
+                el.addEventListener('waiting', function() {
+                    console.log("[WebAudio] ⏳ WAITING readyState=" + el.readyState);
+                });
+
+                el.addEventListener('stalled', function() {
+                    console.warn("[WebAudio] ⚠️ STALLED");
+                });
             }
-            return originalPlay.apply(this, arguments).catch(function(e){});
+
+            return el;
         };
+
+        console.log("[WebAudio] ✅ Interceptor Installed");
     },
 
-    // 🌟 الدالة اللي زرار (Enable Audio) بتاعك بينادي عليها
+    CleanupAudioElements: function() {
+        if (!window.vivoxAudioElements) return;
+        var before = window.vivoxAudioElements.length;
+        window.vivoxAudioElements = window.vivoxAudioElements.filter(function(el) {
+            if (!el || !el.srcObject) {
+                if (el && el.parentNode) el.parentNode.removeChild(el);
+                return false;
+            }
+            var tracks = el.srcObject.getAudioTracks();
+            if (tracks.length === 0 || tracks.every(function(t) { return t.readyState === 'ended'; })) {
+                if (el.parentNode) el.parentNode.removeChild(el);
+                return false;
+            }
+            return true;
+        });
+        console.log("[WebAudio] 🧹 Cleanup: " + before + " → " + window.vivoxAudioElements.length);
+    },
+
     ForceUnlockWebAudio: function() {
-        if (window.vivoxAudioElements) {
-            var count = 0;
-            window.vivoxAudioElements.forEach(function(audioObj) {
-                audioObj.muted = false;
-                audioObj.volume = 1.0;
-                var p = audioObj.play();
-                if(p !== undefined) p.catch(function(e){});
-                count++;
-            });
-            console.log("[WebAudio] Forced play on " + count + " streams! 🚀");
-        }
+        document.querySelectorAll('audio').forEach(function(audioObj) {
+            if (!audioObj) return;
+            audioObj.muted = false;
+            audioObj.volume = 1.0;
+            if (audioObj.srcObject) {
+                audioObj.srcObject.getAudioTracks().forEach(function(t) {
+                    t.enabled = true;
+                });
+            }
+            var p = audioObj.play();
+            if (p !== undefined) p.catch(function(e) {});
+        });
 
         if (typeof WEBAudio !== 'undefined' && WEBAudio.audioContext) {
             if (WEBAudio.audioContext.state === 'suspended') {
                 WEBAudio.audioContext.resume();
+                console.log("[WebAudio] 🔊 AudioContext resumed");
             }
         }
     },
@@ -55,7 +121,6 @@ mergeInto(LibraryManager.library, {
         if (typeof WEBAudio !== 'undefined' && WEBAudio.audioContext) {
             if (WEBAudio.audioContext.state === 'suspended') {
                 WEBAudio.audioContext.resume();
-                console.log("[WebAudio] AudioContext resumed via JS Bridge ✅");
             }
         }
     },
@@ -64,15 +129,73 @@ mergeInto(LibraryManager.library, {
         if (window.activeAudioStreams && window.activeAudioStreams.length > 0) {
             var count = 0;
             window.activeAudioStreams.forEach(function(stream) {
-                var tracks = stream.getAudioTracks();
-                for (var i = 0; i < tracks.length; i++) {
-                    tracks[i].enabled = !mute; // قفل تيار Vivox الحقيقي
+                stream.getAudioTracks().forEach(function(t) {
+                    t.enabled = !mute;
                     count++;
-                }
+                });
             });
-            console.log("[WebAudio] Real Hard Mute set to: " + mute + " on " + count + " tracks.");
-        } else {
-            console.warn("[WebAudio] No active streams caught yet!");
+            console.log("[WebAudio] 🔇 HardMute=" + mute + " on " + count + " mic tracks");
+        }
+    },
+
+    StartPeriodicAudioUnlock: function() {
+        if (window._vivoxUnlockInterval) {
+            clearInterval(window._vivoxUnlockInterval);
+            window._vivoxUnlockInterval = null;
+        }
+
+        window._vivoxUnlockInterval = setInterval(function() {
+            var found = 0;
+            var playing = 0;
+
+            document.querySelectorAll('audio').forEach(function(audioObj) {
+                if (!audioObj || !audioObj.srcObject) return;
+
+                // تجاهل الـ tracks اللي خلصت
+                var tracks = audioObj.srcObject.getAudioTracks();
+                var allEnded = tracks.length > 0 && tracks.every(function(t) {
+                    return t.readyState === 'ended';
+                });
+                if (allEnded) return;
+
+                found++;
+
+                // فعّل الـ tracks
+                tracks.forEach(function(t) { t.enabled = true; });
+
+                if (!audioObj.paused && !audioObj.muted) {
+                    playing++;
+                    return;
+                }
+
+                audioObj.muted = false;
+                audioObj.volume = 1.0;
+                var p = audioObj.play();
+                if (p !== undefined) p.catch(function(e) {
+                    console.warn("[WebAudio] Periodic retry failed:", e.message);
+                });
+            });
+
+            if (found > 0) {
+                console.log("[WebAudio] 🔄 found=" + found + " playing=" + playing);
+            }
+
+            if (found > 0 && playing === found) {
+                clearInterval(window._vivoxUnlockInterval);
+                window._vivoxUnlockInterval = null;
+                console.log("[WebAudio] ✅ All unlocked - interval stopped");
+            }
+
+        }, 800);
+
+        console.log("[WebAudio] 🔄 Periodic unlock started");
+    },
+
+    StopPeriodicAudioUnlock: function() {
+        if (window._vivoxUnlockInterval) {
+            clearInterval(window._vivoxUnlockInterval);
+            window._vivoxUnlockInterval = null;
+            console.log("[WebAudio] 🛑 Periodic unlock stopped");
         }
     }
 });
