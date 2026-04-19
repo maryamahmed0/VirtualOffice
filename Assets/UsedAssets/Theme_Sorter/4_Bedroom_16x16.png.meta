@@ -290,6 +290,27 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: 4_Bedroom_16x16_8
+      rect:
+        serializedVersion: 2
+        x: 2
+        y: 377
+        width: 44
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: eac815aa576ac05428c2920f374681b4
+      internalID: 588252786
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     physicsShape: []
     bones: []
@@ -309,6 +330,7 @@ TextureImporter:
       4_Bedroom_16x16_5: 1096696879
       4_Bedroom_16x16_6: -36908195
       4_Bedroom_16x16_7: -576927343
+      4_Bedroom_16x16_8: 588252786
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

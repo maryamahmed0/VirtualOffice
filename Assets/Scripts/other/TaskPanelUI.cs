@@ -4,7 +4,7 @@ using UnityEngine;
 public class TasksPanelUI : MonoBehaviour
 {
     [Header("List")]
-    [SerializeField] private Transform contentRoot;   // Viewport/Content
+    [SerializeField] private Transform contentRoot;   
     [SerializeField] private TaskRowUI rowPrefab;
 
     private readonly List<TaskRowUI> rows = new();
@@ -18,12 +18,12 @@ public class TasksPanelUI : MonoBehaviour
     {
         if (contentRoot == null || rowPrefab == null) return;
 
-        // clear
+
         for (int i = 0; i < rows.Count; i++)
             if (rows[i] != null) Destroy(rows[i].gameObject);
         rows.Clear();
 
-        //  Mock tasks (later: backend)
+
         var tasks = BuildMockTasks();
 
         foreach (var t in tasks)

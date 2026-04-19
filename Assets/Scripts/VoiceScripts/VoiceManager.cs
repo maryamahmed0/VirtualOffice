@@ -21,9 +21,17 @@ public class VoiceManager : MonoBehaviour
     [DllImport("__Internal")]
     private static extern void HardMuteWebMic(bool mute);
 
-    // 👉 استيراد دالة الفخ
     [DllImport("__Internal")]
-    private static extern void InitWebMicInterceptor(); 
+    private static extern void InitWebMicInterceptor();
+
+    [DllImport("__Internal")]
+    private static extern void StartPeriodicAudioUnlock();
+
+    [DllImport("__Internal")]
+    private static extern void StopPeriodicAudioUnlock();
+
+    [DllImport("__Internal")]
+    private static extern void CleanupAudioElements();
 #endif
 
     private void Awake()
@@ -34,7 +42,6 @@ public class VoiceManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
 
 #if UNITY_WEBGL && !UNITY_EDITOR
-        // 👉 تشغيل الفخ أول ما اللعبة تفتح
         try { InitWebMicInterceptor(); } catch { }
 #endif
     }
@@ -71,6 +78,21 @@ public class VoiceManager : MonoBehaviour
 #endif
 
             await VivoxService.Instance.InitializeAsync();
+
+            try
+            {
+                if (VivoxService.Instance.IsLoggedIn)
+                {
+                    Debug.Log("[VOICE] Already logged in, logging out first...");
+                    await VivoxService.Instance.LogoutAsync();
+                    Debug.Log("[VOICE] Logged out ✅");
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogWarning("[VOICE] Logout attempt failed (ignored): " + ex.Message);
+            }
+
             await VivoxService.Instance.LoginAsync(new LoginOptions { DisplayName = playerDisplayName });
 
             IsLoggedIn = true;
@@ -104,6 +126,11 @@ public class VoiceManager : MonoBehaviour
             CurrentChannel = channelName;
             Debug.Log("[VOICE] Joined channel ✅ " + channelName);
 
+#if UNITY_WEBGL && !UNITY_EDITOR
+            try { StartPeriodicAudioUnlock(); } catch { }
+            Debug.Log("[VOICE] Periodic Audio Unlock started 🔄");
+#endif
+
             SetMute(IsMutedLocal);
         }
         catch (System.Exception e)
@@ -127,22 +154,17 @@ public class VoiceManager : MonoBehaviour
             if (mute)
             {
                 VivoxService.Instance.MuteInputDevice();
-                _ = VivoxService.Instance.SetChannelTransmissionModeAsync(TransmissionMode.None);
+
+                if (!string.IsNullOrEmpty(CurrentChannel))
+                    _ = VivoxService.Instance.SetChannelTransmissionModeAsync(TransmissionMode.None);
             }
             else
             {
                 VivoxService.Instance.UnmuteInputDevice();
                 if (!string.IsNullOrEmpty(CurrentChannel))
-                {
-                    _ = VivoxService.Instance.SetChannelTransmissionModeAsync(TransmissionMode.Single, CurrentChannel);
-                }
-                else
-                {
                     _ = VivoxService.Instance.SetChannelTransmissionModeAsync(TransmissionMode.All);
-                }
             }
 
-            // 👉 قطع المايك فعلياً باستخدام الفخ
 #if UNITY_WEBGL && !UNITY_EDITOR
             HardMuteWebMic(mute);
 #endif
@@ -160,6 +182,12 @@ public class VoiceManager : MonoBehaviour
 
             string toLeave = CurrentChannel;
             CurrentChannel = null;
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+            try { CleanupAudioElements(); } catch { }
+            try { StopPeriodicAudioUnlock(); } catch { }
+            Debug.Log("[VOICE] Periodic Audio Unlock stopped 🛑");
+#endif
 
             _ = VivoxService.Instance.LeaveChannelAsync(toLeave);
 
@@ -179,6 +207,12 @@ public class VoiceManager : MonoBehaviour
         try
         {
             if (!IsLoggedIn) return;
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+            try { CleanupAudioElements(); } catch { }
+            try { StopPeriodicAudioUnlock(); } catch { }
+            Debug.Log("[VOICE] Periodic Audio Unlock stopped 🛑");
+#endif
 
             _ = VivoxService.Instance.LeaveChannelAsync(channelName);
             if (CurrentChannel == channelName) CurrentChannel = null;
@@ -207,6 +241,11 @@ public class VoiceManager : MonoBehaviour
                 VivoxService.Instance.UnmuteInputDevice();
             }
             VivoxService.Instance.UnmuteOutputDevice();
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+            try { StartPeriodicAudioUnlock(); } catch { }
+            Debug.Log("[VOICE] Periodic Audio Unlock re-started after refresh 🔄");
+#endif
         }
         catch { }
     }

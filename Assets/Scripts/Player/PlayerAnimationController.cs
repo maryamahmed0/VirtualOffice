@@ -74,14 +74,13 @@ public class PlayerAnimationController : MonoBehaviour
             animator.SetFloat(LastMoveXHash, sitDir.x);
             animator.SetFloat(LastMoveYHash, sitDir.y);
 
-            // مهم: تحديث المكان هنا عشان لما يقوم ميحسبش سرعة وهمية فجأة
             lastFramePosition = transform.position;
             return;
         }
 
-        // 👈 التعديل السحري هنا: حساب السرعة يدوياً بدل targetRb.velocity
+  
         Vector2 velocity = (transform.position - lastFramePosition) / Time.deltaTime;
-        lastFramePosition = transform.position; // حفظ المكان للفريم الجاي
+        lastFramePosition = transform.position; 
 
         bool isMoving = velocity.sqrMagnitude > (moveThreshold * moveThreshold);
 

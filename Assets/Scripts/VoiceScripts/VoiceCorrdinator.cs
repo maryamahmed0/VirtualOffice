@@ -13,6 +13,8 @@ public class VoiceCoordinator : MonoBehaviour
     [SerializeField] private string activeMeetingChannel;
     [SerializeField] private string activePrivateChannel;
 
+   
+    private PlayerVoicePresenter _localPresenter;
     private static VoiceCoordinator _instance;
 
     private NetRoomState localRoomState;
@@ -145,7 +147,7 @@ public class VoiceCoordinator : MonoBehaviour
             {
                 await VoiceManager.Instance.RefreshAudioStreamAsync();
             }
-            provider.SetMute(false);
+            ApplyCurrentMuteState();
 
             activeMeetingChannel = channel;
             Debug.Log("[VOICECOORD] Meeting voice ON ✅ " + channel);
@@ -185,6 +187,19 @@ public class VoiceCoordinator : MonoBehaviour
         }
     }
 
+    private void ApplyCurrentMuteState()
+    {
+        if (_localPresenter == null)
+        {
+            var nm = Unity.Netcode.NetworkManager.Singleton;
+            if (nm?.LocalClient?.PlayerObject != null)
+                _localPresenter = nm.LocalClient.PlayerObject.GetComponent<PlayerVoicePresenter>();
+        }
+
+        bool shouldBeMuted = _localPresenter != null && _localPresenter.IsMuted;
+        provider?.SetMute(shouldBeMuted);
+    }
+
     // ====== Private Call ======
 
     public async Task<bool> StartPrivateCallAsync(string privateChannel)
@@ -220,7 +235,7 @@ public class VoiceCoordinator : MonoBehaviour
                 await VoiceManager.Instance.RefreshAudioStreamAsync();
             }
 
-            provider.SetMute(false);
+            ApplyCurrentMuteState();
 
             Debug.Log("[VOICECOORD] Private voice ON ✅ " + privateChannel);
             return true;
@@ -228,7 +243,7 @@ public class VoiceCoordinator : MonoBehaviour
         catch (System.Exception e)
         {
             Debug.LogError("[VOICECOORD] StartPrivateCall FAILED ❌ " + e);
-            activePrivateChannel = null; // تنظيف القناة في حالة الفشل عشان متقفلش علينا الميتنج
+            activePrivateChannel = null; 
 
             if (inMeetingRoom && autoJoinMeeting)
                 await EnsureMeetingVoiceAsync(voiceOpVersion);
@@ -243,7 +258,7 @@ public class VoiceCoordinator : MonoBehaviour
         if (string.IsNullOrEmpty(activePrivateChannel)) return;
 
         string old = activePrivateChannel;
-        activePrivateChannel = null; // تنظيف فوري للقناة
+        activePrivateChannel = null;
 
         try
         {

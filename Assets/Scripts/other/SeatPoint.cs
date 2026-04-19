@@ -30,7 +30,6 @@ public class SeatPoint : NetworkBehaviour
     {
         if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsListening) return false;
 
-        // 1. نجيب اللاعب بتاعنا إحنا الأول (آمن للسيرفر والكلاينت)
         NetworkObject myPlayerObj = null;
 
         if (IsServer)
@@ -40,7 +39,6 @@ public class SeatPoint : NetworkBehaviour
         }
         else
         {
-            // الكلاينت يقدر يشوف نفسه بس 
             if (NetworkManager.Singleton.LocalClientId == clientId && NetworkManager.Singleton.LocalClient != null)
                 myPlayerObj = NetworkManager.Singleton.LocalClient.PlayerObject;
         }
@@ -53,11 +51,9 @@ public class SeatPoint : NetworkBehaviour
         var myTeamIdentity = myPlayerObj.GetComponent<PlayerTeamIdentity>();
         int myTeamHash = myTeamIdentity != null ? myTeamIdentity.TeamIdHash.Value : 0;
 
-        // 2. نلف على كل الأجسام اللي معمولة في الشبكة ونفلتر اللاعبين بس
-        // القائمة دي متاحة للـ Client والـ Server عادي جداً
         foreach (var networkObj in NetworkManager.Singleton.SpawnManager.SpawnedObjects.Values)
         {
-            // لو مش لاعب، أو لو ده أنا.. كمل ومتبصش
+
             if (!networkObj.IsPlayerObject || networkObj.OwnerClientId == clientId)
                 continue;
 
@@ -75,12 +71,12 @@ public class SeatPoint : NetworkBehaviour
 
                     if (myTeamHash == otherTeamHash)
                     {
-                        return false; // معايا في نفس التيم، امنعني
+                        return false;
                     }
                 }
                 else
                 {
-                    return false; // في غرفة عادية، امنعني
+                    return false; 
                 }
             }
         }

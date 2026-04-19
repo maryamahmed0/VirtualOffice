@@ -11,7 +11,6 @@ public static class VoiceChannelUtil
         if (string.IsNullOrEmpty(org)) org = "ORG";
         if (string.IsNullOrEmpty(joinCode)) joinCode = "ROOM";
 
-        // 👉 استخدمنا Dash هنا
         return $"{org}-{joinCode}";
     }
 
@@ -23,7 +22,7 @@ public static class VoiceChannelUtil
         foreach (char c in s.Trim())
         {
             if (char.IsLetterOrDigit(c)) sb.Append(char.ToUpperInvariant(c));
-            // 👉 حولنا أي مسافة أو Underscore لـ Dash مسموح بيها
+
             else if (c == '_' || c == '-') sb.Append('-');
         }
 

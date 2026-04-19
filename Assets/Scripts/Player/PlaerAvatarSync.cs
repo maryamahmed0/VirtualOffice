@@ -11,8 +11,8 @@ public class PlayerAvatarSync : NetworkBehaviour
     );
 
     [Header("Avatar Visuals (GameObjects with Animator)")]
-    [SerializeField] private GameObject[] boyAvatars;  // حطي هنا الـ 3 شخصيات للولاد
-    [SerializeField] private GameObject[] girlAvatars; // حطي هنا الـ 3 شخصيات للبنات
+    [SerializeField] private GameObject[] boyAvatars; 
+    [SerializeField] private GameObject[] girlAvatars; 
 
     public override void OnNetworkSpawn()
     {

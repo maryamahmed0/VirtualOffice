@@ -27,7 +27,7 @@ public class PresenceService : NetworkBehaviour
     {
         pending.Enqueue((id, name, org, teamHash, teamSize));
 
-        // لو Presence جاهزة على السيرفر، نفّذ فورًا
+   
         if (Instance != null && Instance.IsServer)
             Instance.FlushPendingApprovals();
     }

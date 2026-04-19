@@ -4,9 +4,9 @@ using UnityEngine.EventSystems;
 public class DynamicJoystickTouch : MonoBehaviour
 {
     [Header("Refs")]
-    [SerializeField] private RectTransform inputArea;    // SafeArea
-    [SerializeField] private RectTransform joystickRoot; // القاعدة
-    [SerializeField] private RectTransform handle;       // الهاندل (Child of joystickRoot)
+    [SerializeField] private RectTransform inputArea;    
+    [SerializeField] private RectTransform joystickRoot; 
+    [SerializeField] private RectTransform handle;      
     [SerializeField] private Canvas canvas;
 
     [Header("Config")]
@@ -15,7 +15,7 @@ public class DynamicJoystickTouch : MonoBehaviour
 
     private bool active;
     private int activeFingerId = -1;
-    private Vector2 startPosLocalInArea; // مكان اللمسة داخل inputArea
+    private Vector2 startPosLocalInArea; 
     private Vector2 currentVector;
 
     public Vector2 Vector => currentVector;
@@ -33,7 +33,6 @@ public class DynamicJoystickTouch : MonoBehaviour
 
         SetVisible(false);
 
-        // مهم: handle يبقى في النص
         if (handle) handle.anchoredPosition = Vector2.zero;
     }
 
@@ -117,10 +116,9 @@ public class DynamicJoystickTouch : MonoBehaviour
         RectTransformUtility.ScreenPointToLocalPointInRectangle(
             inputArea, screenPos, UICam, out startPosLocalInArea);
 
-        // ✅ القاعدة تظهر تحت صباعك
+
         joystickRoot.anchoredPosition = startPosLocalInArea;
 
-        // ✅ الهاندل في النص داخل القاعدة
         if (handle) handle.anchoredPosition = Vector2.zero;
 
         SetVisible(true);
@@ -132,13 +130,11 @@ public class DynamicJoystickTouch : MonoBehaviour
         RectTransformUtility.ScreenPointToLocalPointInRectangle(
             inputArea, screenPos, UICam, out var localPosInArea);
 
-        // delta بالنسبة لمكان بداية اللمسة
         Vector2 delta = localPosInArea - startPosLocalInArea;
 
-        // clamp داخل نصف قطر
+
         Vector2 clamped = Vector2.ClampMagnitude(delta, maxRadius);
 
-        // ✅ الهاندل يتحرك داخل القاعدة فقط
         if (handle) handle.anchoredPosition = clamped;
 
         SetVector(clamped / maxRadius);

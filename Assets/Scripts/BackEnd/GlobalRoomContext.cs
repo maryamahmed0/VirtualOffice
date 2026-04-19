@@ -12,7 +12,7 @@ public class GlobalRoomContext : MonoBehaviour
 
     public int TeamIdHash { get; private set; }
     public int TeamSize { get; private set; }
-    public int LayoutIndex { get; private set; } // 0/1/2
+    public int LayoutIndex { get; private set; }
 
     public NetRoomState.Zone CurrentZone { get; private set; } = NetRoomState.Zone.Lobby;
 

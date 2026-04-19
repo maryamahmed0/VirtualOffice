@@ -61,14 +61,12 @@ public class PlayerDoorInteractor : NetworkBehaviour
         if (!Input.GetKeyDown(KeyCode.F))
             return;
 
-        // لو قاعد -> يقوم
         if (seatingState != null && seatingState.IsSitting)
         {
             seatInteractor?.UseSeat();
             return;
         }
 
-        // الباب له أولوية
         if (currentDoor != null)
         {
             if (Application.platform == RuntimePlatform.WebGLPlayer)
@@ -81,7 +79,7 @@ public class PlayerDoorInteractor : NetworkBehaviour
             return;
         }
 
-        // بعده الكرسي لو متاح فعلاً
+   
         if (seatInteractor != null && seatInteractor.HasUsableSeatInRange)
         {
             seatInteractor.UseSeat();

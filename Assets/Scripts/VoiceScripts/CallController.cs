@@ -244,7 +244,6 @@ public class CallController : NetworkBehaviour
             return;
         }
 
-        // 1. هنبلغ السيرفر فوراً إننا وافقنا وبدأنا المحاولة عشان الـ Timeout ميضربش
         if (NetworkManager.Singleton != null)
         {
             CallRpcDispatcher.Instance.PrivateVoiceReadyServerRpc(
@@ -255,7 +254,6 @@ public class CallController : NetworkBehaviour
 
         OnVoiceStatusChanged?.Invoke("Connecting...");
 
-        // 2. هنبدأ الـ Join الفعلي
         bool ok = await _voiceCoord.StartPrivateCallAsync(channel);
 
         if (myVer != _voiceStartVersion) return;
@@ -264,12 +262,11 @@ public class CallController : NetworkBehaviour
 
         if (ok)
         {
-            // لو نجحنا، هنحدث الـ UI بس
+
             OnVoiceStatusChanged?.Invoke("Connected");
         }
         else
         {
-            // لو فشلنا بجد، هنبلغ السيرفر يقفلها
             OnVoiceStatusChanged?.Invoke("Connection failed");
 
             if (otherClientId != 0 && NetworkManager.Singleton != null)

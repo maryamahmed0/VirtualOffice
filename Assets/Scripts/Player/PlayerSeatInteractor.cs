@@ -68,14 +68,12 @@ public class PlayerSeatInteractor : NetworkBehaviour
         if (seatingState == null) return;
         if (UIInputBlocker.BlockGameplayInput) return;
 
-        // لو قاعد بالفعل -> قوم
         if (seatingState.IsSitting)
         {
             RequestStandServerRpc();
             return;
         }
 
-        // ممنوع قعدة لو واقف عند باب
         if (doorInteractor != null && doorInteractor.HasDoorInRange)
             return;
 

@@ -7,7 +7,10 @@ public class NetRoomState : NetworkBehaviour
     {
         Lobby = 0,
         TeamRoom = 1,
-        Meeting = 2
+        Meeting = 2,
+        Breakoom = 3,
+        Kitchen = 4,
+        Wc = 5
     }
 
     public NetworkVariable<int> CurrentZone =

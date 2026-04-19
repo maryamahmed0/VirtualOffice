@@ -10,12 +10,11 @@ public class VivoxVoiceProvider : MonoBehaviour, IVoiceProvider
     {
         if (IsLoggedIn) return;
 
-        // بننادي على دالة الدخول (بنطنش الـ warning بتاع الـ Task عشان إحنا هندير الانتظار بنفسنا)
+     
 #pragma warning disable CS4014
         VoiceManager.Instance.LoginAsync(displayName);
 #pragma warning restore CS4014
 
-        // انتظار آمن للمتصفح (8 ثواني كحد أقصى) عشان اللعبة متقفش هنا
         int waitSteps = 0;
         while (!IsLoggedIn && waitSteps < 40)
         {

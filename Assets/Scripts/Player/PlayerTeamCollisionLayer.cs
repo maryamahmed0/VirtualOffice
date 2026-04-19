@@ -8,8 +8,8 @@ public class PlayerTeamCollisionLayer : NetworkBehaviour
     [SerializeField] private PlayerTeamIdentity team;
 
     [Header("Only change THESE (movement body)")]
-    [SerializeField] private Collider2D bodyCollider;   // جسم اللاعب
-    [SerializeField] private Rigidbody2D bodyRigidbody; // ريجيد بودي الحركة
+    [SerializeField] private Collider2D bodyCollider;  
+    [SerializeField] private Rigidbody2D bodyRigidbody;
 
     private int LDefault, LSmall, LMed, LLarge;
 
@@ -49,6 +49,5 @@ public class PlayerTeamCollisionLayer : NetworkBehaviour
         if (bodyCollider != null) bodyCollider.gameObject.layer = layer;
         if (bodyRigidbody != null) bodyRigidbody.gameObject.layer = layer;
 
-        // مهم: لو bodyCollider على نفس الجيم اوبجكت بتاع rb، سطر واحد كفاية
     }
 }

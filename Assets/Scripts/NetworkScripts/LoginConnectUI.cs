@@ -19,7 +19,7 @@ public class LobbyConnectUI : MonoBehaviour
     [SerializeField] private TMP_InputField teamSizeInput;
 
     [Header("Avatar (NEW)")]
-    [SerializeField] private TMP_Dropdown genderDropdown; // 0 = Boy (M), 1 = Girl (F)
+    [SerializeField] private TMP_Dropdown genderDropdown; 
 
     private RelayConnector relay;
     private bool busy;
@@ -120,7 +120,6 @@ public class LobbyConnectUI : MonoBehaviour
 
         try
         {
-            // 🌟 نشغل الـ Voice في الخلفية ومنديلوش أي فرصة يعلق اللعبة!
 #pragma warning disable CS4014
             VoiceManager.Instance.LoginAsync(displayName);
 #pragma warning restore CS4014

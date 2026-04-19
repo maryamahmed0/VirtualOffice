@@ -6,24 +6,28 @@ public class WebAudioEnabler : MonoBehaviour
 #if UNITY_WEBGL && !UNITY_EDITOR
     [DllImport("__Internal")]
     private static extern void ForceUnlockWebAudio();
+
+    // ✅ لازم تتعرف هنا برضو مش بس في VoiceManager
+    [DllImport("__Internal")]
+    private static extern void StartPeriodicAudioUnlock();
 #endif
 
     public void OnEnableAudioClicked()
     {
 #if UNITY_WEBGL && !UNITY_EDITOR
-        try 
+        try
         {
             ForceUnlockWebAudio();
+            StartPeriodicAudioUnlock();
             Debug.Log("[WebAudio] Enable Button Clicked!");
         }
-        catch (System.Exception e) 
+        catch (System.Exception e)
         {
-            Debug.LogWarning("[WebAudio] Error clicking enable: " + e.Message);
+            Debug.LogWarning("[WebAudio] Error: " + e.Message);
         }
 #else
         Debug.Log("Audio Enabler only needed in WebGL.");
 #endif
-        // اختياري: ممكن تخفي الزرار بعد ما اللاعب يدوس عليه
         gameObject.SetActive(false);
     }
 }
