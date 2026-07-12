@@ -2,11 +2,39 @@
 
 # SyncVerse – Virtual Office
 
+![Unity](https://img.shields.io/badge/Unity-2022.3%20LTS-black?logo=unity)
+![C#](https://img.shields.io/badge/C%23-.NET-239120?logo=csharp)
+![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Android%20%7C%20WebGL-blue)
+![Status](https://img.shields.io/badge/Status-Active-success)
+
+<p align="center">
+  <img src="Docs/Images/Lobby.png" width="100%">
+</p>
+
+<p align="center">
+
+A 2D Multiplayer Virtual Office built with Unity, Netcode for GameObjects, Relay, and Vivox.
+
+</p>
 ## Overview
 
 **SyncVerse – Virtual Office** is a Unity-based 2D multiplayer virtual workspace designed to provide an interactive environment for remote collaboration. Users can join virtual offices, communicate through voice chat, attend meetings, collaborate with teammates, and navigate different workspaces in real time.
 
 This repository contains the **Unity client** for the Virtual Office.
+
+---
+## Table of Contents
+
+- [Overview](#overview)
+- [Features](#features)
+- [Platform Support](#platform-support)
+- [Technologies Used](#technologies-used)
+- [Main Modules](#main-modules)
+- [Requirements](#requirements)
+- [Getting Started](#getting-started)
+- [Screenshots](#-screenshots)
+- [License](#license)
+- [Note](#note)
 
 ---
 
@@ -21,6 +49,8 @@ This repository contains the **Unity client** for the Virtual Office.
 * Team Rooms with team-based visibility
 * Private player interactions
 * AI meeting recording integration
+* Team-based player visibility
+* Private voice calls between players
   
 ---
 
@@ -83,17 +113,17 @@ Each room manages visibility, interaction, and player permissions independently.
 
 ### AI Integration
 
-The Unity client records meeting audio and securely sends it to the backend API for AI-powered transcription and meeting summarization.
+AI-powered meeting transcription and summarization integration.
 
 ---
 
 ## Requirements
 
 * Unity 2022.3 LTS
-* .NET Backend API
-* Unity Gaming Services
+* Unity Gaming Services (UGS)
 * Relay Service
 * Vivox Service
+* .NET Backend API (optional for AI features)
 
 ---
 
@@ -108,7 +138,55 @@ The Unity client records meeting audio and securely sends it to the backend API 
 
 ---
 
-## Screenshots
+## 📸 Screenshots
+
+### Lobby
+
+<p align="center">
+  <img src="Docs/Images/Lobby.png" width="700"/>
+</p>
+
+### Team Room
+
+<p align="center">
+  <img src="Docs/Images/TeamRoom.png" width="700"/>
+</p>
+
+### Meeting Room
+
+<p align="center">
+  <img src="Docs/Images/MeetingRoom.png" width="700"/>
+</p>
+
+### Meeting Chat
+
+<p align="center">
+  <img src="Docs/Images/MeetingChat.png" width="700"/>
+</p>
+
+### Meeting Reactions
+
+<p align="center">
+  <img src="Docs/Images/MeetingReactions.png" width="700"/>
+</p>
+
+### People List
+
+<p align="center">
+  <img src="Docs/Images/PeopleList.png" width="700"/>
+</p>
+
+### Tasks List
+
+<p align="center">
+  <img src="Docs/Images/TasksList.png" width="700"/>
+</p>
+
+### Private Call
+
+<p align="center">
+  <img src="Docs/Images/InCall.png" width="700"/>
+</p>
 
 
 
