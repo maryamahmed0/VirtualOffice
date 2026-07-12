@@ -29,8 +29,6 @@ public class VoiceCoordinator : MonoBehaviour
         DontDestroyOnLoad(gameObject);
 
         provider = providerBehaviour as IVoiceProvider;
-        if (provider == null)
-            Debug.LogError("[VOICECOORD] ProviderBehaviour لازم يبقى Component بيطبق IVoiceProvider");
     }
 
     private void OnEnable()
@@ -57,7 +55,7 @@ public class VoiceCoordinator : MonoBehaviour
         localRoomState.CurrentZone.OnValueChanged += OnZoneChanged;
 
         CancelInvoke(nameof(TryHookLocalZone));
-        Debug.Log("[VOICECOORD] Hooked ZoneChanged ✅");
+        Debug.Log("[VOICECOORD] Hooked ZoneChanged");
 
         OnZoneChanged(localRoomState.CurrentZone.Value, localRoomState.CurrentZone.Value);
     }
@@ -150,11 +148,11 @@ public class VoiceCoordinator : MonoBehaviour
             ApplyCurrentMuteState();
 
             activeMeetingChannel = channel;
-            Debug.Log("[VOICECOORD] Meeting voice ON ✅ " + channel);
+            Debug.Log("[VOICECOORD] Meeting voice ON " + channel);
         }
         catch (System.Exception e)
         {
-            Debug.LogError("[VOICECOORD] EnsureMeetingVoice FAILED ❌ " + e);
+            Debug.LogError("[VOICECOORD] EnsureMeetingVoice FAILED " + e);
         }
     }
 
@@ -175,11 +173,11 @@ public class VoiceCoordinator : MonoBehaviour
             await provider.LeaveAsync(old);
             if (v != voiceOpVersion) return;
 
-            Debug.Log("[VOICECOORD] Meeting voice OFF ✅ " + old);
+            Debug.Log("[VOICECOORD] Meeting voice OFF " + old);
         }
         catch (System.Exception e)
         {
-            Debug.LogError("[VOICECOORD] LeaveMeeting FAILED ❌ " + e);
+            Debug.LogError("[VOICECOORD] LeaveMeeting FAILED " + e);
         }
         finally
         {
@@ -237,12 +235,12 @@ public class VoiceCoordinator : MonoBehaviour
 
             ApplyCurrentMuteState();
 
-            Debug.Log("[VOICECOORD] Private voice ON ✅ " + privateChannel);
+            Debug.Log("[VOICECOORD] Private voice ON " + privateChannel);
             return true;
         }
         catch (System.Exception e)
         {
-            Debug.LogError("[VOICECOORD] StartPrivateCall FAILED ❌ " + e);
+            Debug.LogError("[VOICECOORD] StartPrivateCall FAILED " + e);
             activePrivateChannel = null; 
 
             if (inMeetingRoom && autoJoinMeeting)
@@ -264,11 +262,11 @@ public class VoiceCoordinator : MonoBehaviour
         {
             Debug.Log($"[VOICECOORD] Ending Private Call: {old}");
             await provider.LeaveAsync(old);
-            Debug.Log("[VOICECOORD] Private voice OFF ✅ " + old);
+            Debug.Log("[VOICECOORD] Private voice OFF  " + old);
         }
         catch (System.Exception e)
         {
-            Debug.LogError("[VOICECOORD] EndPrivateCall FAILED ❌ " + e);
+            Debug.LogError("[VOICECOORD] EndPrivateCall FAILED  " + e);
         }
 
         if (inMeetingRoom && autoJoinMeeting)

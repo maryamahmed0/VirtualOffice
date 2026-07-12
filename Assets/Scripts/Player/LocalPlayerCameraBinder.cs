@@ -102,7 +102,6 @@ public class LocalPlayerCameraBinder : NetworkBehaviour
             if (Vector3.Distance(p, _lastPos) > threshold)
             {
                 Debug.Log($"[CAM] Detected teleport/move burst -> Rebind. pos={p}");
-                // rebind + snap
                 TryBindToThisOwner();
                 _lastPos = p;
                 break;

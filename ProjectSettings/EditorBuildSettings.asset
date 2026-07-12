@@ -9,6 +9,12 @@ EditorBuildSettings:
     path: Assets/Scenes/BootStrap.unity
     guid: 7bf0e11e52a0d5740957f9cb0d2a52f4
   - enabled: 1
+    path: Assets/Scenes/WorkSpaceSelectorScene.unity
+    guid: 0b49164aee362504ca907492e6371705
+  - enabled: 1
+    path: Assets/Scenes/TeamSelectorScene.unity
+    guid: 3980e5638beacf04ea22f5bd7e8f1ef1
+  - enabled: 1
     path: Assets/Scenes/LobbyScene.unity
     guid: c990274f4cf1fdf43a4d8a751bd04a48
   - enabled: 1

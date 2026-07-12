@@ -17,7 +17,7 @@ public static class WebVoiceGate
         try 
         {
             ResumeWebAudioContext();
-            Debug.Log("[WEB] WebAudio resumed from WebVoiceGate ✅");
+            Debug.Log("[WEB] WebAudio resumed from WebVoiceGate ");
         }
         catch (System.Exception e)
         {

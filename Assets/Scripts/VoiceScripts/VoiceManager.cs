@@ -85,7 +85,7 @@ public class VoiceManager : MonoBehaviour
                 {
                     Debug.Log("[VOICE] Already logged in, logging out first...");
                     await VivoxService.Instance.LogoutAsync();
-                    Debug.Log("[VOICE] Logged out ✅");
+                    Debug.Log("[VOICE] Logged out ");
                 }
             }
             catch (System.Exception ex)
@@ -96,7 +96,7 @@ public class VoiceManager : MonoBehaviour
             await VivoxService.Instance.LoginAsync(new LoginOptions { DisplayName = playerDisplayName });
 
             IsLoggedIn = true;
-            Debug.Log("[VOICE] Vivox official callback: Logged in ✅");
+            Debug.Log("[VOICE] Vivox official callback: Logged in ");
         }
         catch (System.Exception e)
         {
@@ -124,18 +124,18 @@ public class VoiceManager : MonoBehaviour
             }
 
             CurrentChannel = channelName;
-            Debug.Log("[VOICE] Joined channel ✅ " + channelName);
+            Debug.Log("[VOICE] Joined channel  " + channelName);
 
 #if UNITY_WEBGL && !UNITY_EDITOR
             try { StartPeriodicAudioUnlock(); } catch { }
-            Debug.Log("[VOICE] Periodic Audio Unlock started 🔄");
+            Debug.Log("[VOICE] Periodic Audio Unlock started ");
 #endif
 
             SetMute(IsMutedLocal);
         }
         catch (System.Exception e)
         {
-            Debug.LogError("[VOICE] Join FAILED ❌ " + e.Message);
+            Debug.LogError("[VOICE] Join FAILED  " + e.Message);
         }
         finally
         {
@@ -186,7 +186,7 @@ public class VoiceManager : MonoBehaviour
 #if UNITY_WEBGL && !UNITY_EDITOR
             try { CleanupAudioElements(); } catch { }
             try { StopPeriodicAudioUnlock(); } catch { }
-            Debug.Log("[VOICE] Periodic Audio Unlock stopped 🛑");
+            Debug.Log("[VOICE] Periodic Audio Unlock stopped ");
 #endif
 
             _ = VivoxService.Instance.LeaveChannelAsync(toLeave);
@@ -194,7 +194,7 @@ public class VoiceManager : MonoBehaviour
             float timer = 0f;
             while (timer < 0.5f) { await Task.Yield(); timer += Time.deltaTime; }
 
-            Debug.Log("[VOICE] Left ✅ " + toLeave);
+            Debug.Log("[VOICE] Left  " + toLeave);
         }
         finally { _lock.Release(); }
     }
@@ -211,7 +211,7 @@ public class VoiceManager : MonoBehaviour
 #if UNITY_WEBGL && !UNITY_EDITOR
             try { CleanupAudioElements(); } catch { }
             try { StopPeriodicAudioUnlock(); } catch { }
-            Debug.Log("[VOICE] Periodic Audio Unlock stopped 🛑");
+            Debug.Log("[VOICE] Periodic Audio Unlock stopped ");
 #endif
 
             _ = VivoxService.Instance.LeaveChannelAsync(channelName);
@@ -220,7 +220,7 @@ public class VoiceManager : MonoBehaviour
             float timer = 0f;
             while (timer < 0.5f) { await Task.Yield(); timer += Time.deltaTime; }
 
-            Debug.Log("[VOICE] Left ✅ " + channelName);
+            Debug.Log("[VOICE] Left  " + channelName);
         }
         finally { _lock.Release(); }
     }
@@ -244,7 +244,7 @@ public class VoiceManager : MonoBehaviour
 
 #if UNITY_WEBGL && !UNITY_EDITOR
             try { StartPeriodicAudioUnlock(); } catch { }
-            Debug.Log("[VOICE] Periodic Audio Unlock re-started after refresh 🔄");
+            Debug.Log("[VOICE] Periodic Audio Unlock re-started after refresh ");
 #endif
         }
         catch { }

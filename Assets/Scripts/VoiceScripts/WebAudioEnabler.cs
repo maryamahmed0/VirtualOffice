@@ -7,7 +7,7 @@ public class WebAudioEnabler : MonoBehaviour
     [DllImport("__Internal")]
     private static extern void ForceUnlockWebAudio();
 
-    // ✅ لازم تتعرف هنا برضو مش بس في VoiceManager
+   
     [DllImport("__Internal")]
     private static extern void StartPeriodicAudioUnlock();
 #endif
