@@ -27,7 +27,6 @@ public class MobileMoveBridge : MonoBehaviour
 
         if (inputReader == null) return;
 
-        // لو وقفت اللمسة
         if (v.sqrMagnitude < 0.0001f)
         {
             inputReader.ClearMobileOverride();

@@ -121,10 +121,6 @@ public class TeamVisibilitySystem : MonoBehaviour
         {
             target.NetworkHide(observerId);
         }
-        catch (VisibilityChangeException)
-        {
-            // already hidden -> ignore
-        }
         catch (System.Exception e)
         {
             Debug.LogWarning($"[VIS] Hide failed target={target.OwnerClientId} obs={observerId} err={e.Message}");
@@ -136,10 +132,6 @@ public class TeamVisibilitySystem : MonoBehaviour
         try
         {
             target.NetworkShow(observerId);
-        }
-        catch (VisibilityChangeException)
-        {
-            // already visible -> ignore
         }
         catch (System.Exception e)
         {

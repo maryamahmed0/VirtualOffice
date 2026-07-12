@@ -28,7 +28,7 @@ public class ConnectionApprovalHandler : MonoBehaviour
             nm.OnClientConnectedCallback += OnClientConnected;
 
             installed = true;
-            Debug.Log("[APPROVAL] Callback installed ✅");
+            Debug.Log("[APPROVAL] Callback installed");
         }
     }
 
@@ -104,7 +104,7 @@ public class ConnectionApprovalHandler : MonoBehaviour
                 var avatarSync = client.PlayerObject.GetComponent<PlayerAvatarSync>();
                 if (avatarSync != null)
                 {
-                    avatarSync.ServerSetGenderAndRandomize(isGirl); // بنطبق الشكل
+                    avatarSync.ServerSetGenderAndRandomize(isGirl);
                     Debug.Log($"[APPROVAL] Applied Gender to client {clientId}: isGirl={isGirl}");
                 }
             }

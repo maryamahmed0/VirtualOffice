@@ -38,7 +38,7 @@ public class ProximityCallScanner : NetworkBehaviour
 
         vis = FindFirstObjectByType<LocalVisibilityFilter>(FindObjectsInactive.Exclude);
 
-        Debug.Log("[CALLSCAN] Local scanner started ✅ owner=" + OwnerClientId);
+        Debug.Log("[CALLSCAN] Local scanner started owner=" + OwnerClientId);
     }
 
     private void Update()

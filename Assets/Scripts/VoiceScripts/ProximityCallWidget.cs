@@ -79,7 +79,7 @@ public class ProximityCallWidget : MonoBehaviour
         call.OnCallStarted += OnLocalCallStarted;
 
         hooked = true;
-        Debug.Log("[ProximityCallWidget] Hooked local scanner+call ✅");
+        Debug.Log("[ProximityCallWidget] Hooked local scanner+call");
     }
     private void OnLocalCallStarted(string _)
     {
