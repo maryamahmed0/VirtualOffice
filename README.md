@@ -16,6 +16,9 @@
 A 2D Multiplayer Virtual Office built with Unity, Netcode for GameObjects, Relay, and Vivox.
 
 </p>
+
+---
+
 ## Overview
 
 **SyncVerse – Virtual Office** is a Unity-based 2D multiplayer virtual workspace designed to provide an interactive environment for remote collaboration. Users can join virtual offices, communicate through voice chat, attend meetings, collaborate with teammates, and navigate different workspaces in real time.
